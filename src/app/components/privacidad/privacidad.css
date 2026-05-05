@@ -177,29 +177,9 @@ app-privacidad {
   box-shadow: 0 4px 24px rgba(74, 158, 255, 0.15);
 }
 
-.privacy-section::before {
-  content: '';
-  position: absolute;
-  inset: -15px;
-  background:
-    radial-gradient(ellipse 80% 50% at 20% 30%, rgba(74, 158, 255, 0.2) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 60% at 80% 70%, rgba(123, 79, 255, 0.15) 0%, transparent 55%),
-    radial-gradient(ellipse 90% 80% at 50% 50%, rgba(4, 8, 20, 0.25) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 70% 20%, rgba(74, 158, 255, 0.18) 0%, transparent 65%),
-    radial-gradient(ellipse 50% 70% at 30% 80%, rgba(123, 79, 255, 0.12) 0%, transparent 60%);
-  border-radius: 32px;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: -1;
-}
-
-.privacy-section:hover::before {
-  opacity: 0.8;
-}
-
 .privacy-section:hover {
-  border-color: rgba(74, 158, 255, 0.6);
-  box-shadow: 0 8px 32px rgba(74, 158, 255, 0.3);
+   border-color: rgba(74, 158, 255, 0.6);
+   box-shadow: 0 8px 32px rgba(74, 158, 255, 0.3);
 }
 
 .privacy-section:last-child {

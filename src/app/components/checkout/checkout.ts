@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { CarritoService } from '../../services/carrito/carrito/carrito';
 import { PaypalService } from '../../services/paypal/paypal';
+import { HistorialComprasService } from '../../services/historial-compras/historial-compras';
 import { environment } from '../../../environments/environment';
 
 declare const paypal: any;
@@ -21,6 +22,7 @@ export class Checkout implements AfterViewInit {
 
   private carritoService = inject(CarritoService);
   private paypalService = inject(PaypalService);
+  private historialService = inject(HistorialComprasService);
 
   carrito = this.carritoService.carrito;
   total = this.carritoService.total;
@@ -86,6 +88,31 @@ export class Checkout implements AfterViewInit {
           );
           console.log('Pago capturado:', capture);
           this.mensaje = 'Pago realizado correctamente.';
+          
+          // Guardar la compra en el historial
+          const itemsParaHistorial = this.carrito().map(item => ({
+            producto_id: item.id,
+            nombre_producto: item.nombre,
+            categoria: '',
+            cantidad: item.cantidad,
+            precio_unitario: item.precio,
+            importe: item.precio * item.cantidad
+          }));
+
+          const subtotal = this.carritoService.subtotal();
+          const iva = this.carritoService.impuestos();
+          const total = this.carritoService.totalConImpuestos();
+
+          await this.historialService.guardarCompra({
+            folio: 'FOL-' + Date.now(),
+            paypalOrderId: data.orderID,
+            paypalEstado: capture.status || 'COMPLETED',
+            subtotal: subtotal,
+            iva: iva,
+            total: total,
+            items: itemsParaHistorial
+          });
+
           this.carritoService.vaciar();
           this.paypalButtonContainer.nativeElement.innerHTML = '';
         } catch (error) {
@@ -105,3 +132,4 @@ export class Checkout implements AfterViewInit {
     }).render(this.paypalButtonContainer.nativeElement);
   }
 }
+

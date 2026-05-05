@@ -383,7 +383,7 @@
 /* Acciones */
 .cart-actions {
   display: flex;
-  gap: 12px;
+  justify-content: center;
   margin-top: 24px;
 }
 
@@ -403,7 +403,8 @@
 
 .btn-danger {
   background: transparent;
-  color: var(--silver);
+  color: #f87171;
+  border-color: #f87171;
 }
 
 .btn-danger:hover {

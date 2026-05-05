@@ -189,6 +189,7 @@ export class CarritoComponent implements AfterViewInit, OnDestroy {
             this.mensaje.set('');
             this.carritoService.vaciar();
             container.innerHTML = '';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           });
         } catch (err) {
           console.error('Error capturando pago:', err);
