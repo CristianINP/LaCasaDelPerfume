@@ -1,10 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CarritoService } from '../../services/carrito/carrito/carrito';
 import { SearchService } from '../../services/search/search';
 import { FormsModule } from '@angular/forms';
-import { UserService } from '../../services/user/user';
-import { User } from '../../services/user/user';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-navbar',
@@ -19,12 +18,8 @@ export class Navbar {
   constructor(
     public carritoService: CarritoService,
     private searchService: SearchService,
-    private userService: UserService
+    private router: Router
   ) {}
-
-  get usuario(): User | null {
-    return this.userService.usuario();
-  }
 
   onSearch() {
     this.searchService.setSearch(this.searchQuery());
@@ -37,21 +32,52 @@ export class Navbar {
   }
 
   goHome() {
-    window.location.href = '/';
-  }
-
-  goToCatalog() {
-    const catalog = document.getElementById('catalogo-section');
-    if (catalog) {
-      catalog.scrollIntoView({ behavior: 'smooth' });
+    const currentUrl = this.router.url;
+    if (currentUrl === '/' || currentUrl === '') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      window.location.href = '/#catalogo-section';
+      this.router.navigateByUrl('/').then(() => {
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
+      });
     }
   }
 
-  logout() {
-    this.userService.clearUsuario();
-    window.location.href = '/';
+   goToCatalog() {
+    const scrollToCatalog = () => {
+      const catalog = document.getElementById('catalogo-section');
+      if (catalog) {
+        catalog.scrollIntoView({ behavior: 'smooth' });
+      }
+      setTimeout(() => {
+        const sidebar = document.querySelector('.sidebar') as HTMLElement;
+        if (sidebar) {
+          sidebar.scrollTop = 0;
+        }
+      }, 100);
+    };
+
+    const currentUrl = this.router.url;
+    if (currentUrl === '/' || currentUrl === '') {
+      scrollToCatalog();
+    } else {
+      this.router.navigateByUrl('/').then(() => {
+        setTimeout(scrollToCatalog, 100);
+      });
+    }
+  }
+
+  goToHistorial() {
+    const currentUrl = this.router.url;
+    if (currentUrl === '/historial') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      this.router.navigateByUrl('/historial').then(() => {
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
+      });
+    }
   }
 }
-

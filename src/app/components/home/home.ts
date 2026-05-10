@@ -162,6 +162,12 @@ export class Home implements OnInit, AfterViewInit {
     const catalogSection = document.getElementById('catalogo-section');
     if (catalogSection) {
       catalogSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => {
+        const sidebar = document.querySelector('.sidebar') as HTMLElement;
+        if (sidebar) {
+          sidebar.scrollTop = 0;
+        }
+      }, 100);
     }
   }
 

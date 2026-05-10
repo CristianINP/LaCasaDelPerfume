@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git pull *)",
+      "Bash(curl -s http://localhost:3000/api/productos)",
+      "Bash(python -c ' *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://fimgs.net/images/secundar/o.44083.jpg\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://fimgs.net/images/secundar/o.37688.jpg\")",
+      "Bash(npx tsc *)",
+      "Bash(node -e ' *)",
+      "Bash(git fetch *)"
+    ]
+  }
+}
