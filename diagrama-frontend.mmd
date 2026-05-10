@@ -210,8 +210,12 @@ class Home {
     +Signal showModal
     +Signal modalProductName
     +ngOnInit() void
+    +ngAfterViewInit() void
     +filterByCategory(category) void
+    +filterByCategoryAndScroll(event, category) void
     +scrollToCatalog(event) void
+    +onNavigate() void
+    +onSubscribe(event) void
 }
 
 class Navbar {
@@ -288,7 +292,6 @@ class Checkout {
     +Signal mensaje
     +Signal mostrarTicket
     +Signal ticketGenerado
-    +Signal cargandoPaypal
     +ngAfterViewInit() void
     +descargarTicketXML() void
     +descargarTicketPDF() void
@@ -315,9 +318,13 @@ class HistorialCompras {
     +Readonly loading
     +Readonly error
     +ngOnInit() void
+    +ngAfterViewInit() void
+    +ngOnDestroy() void
     +cargarCompras() void
     +formatearFecha(fecha) string
     +formatearMoneda(valor) string
+    +obtenerEstadoClase(estado) string
+    +obtenerEstadoTexto(estado) string
 }
 
 class DetalleCompra {
@@ -326,9 +333,12 @@ class DetalleCompra {
     +Readonly loading
     +Readonly error
     +ngOnInit() void
+    +ngAfterViewInit() void
     +cargarCompra(id) void
     +formatearFecha(fecha) string
     +formatearMoneda(valor) string
+    +obtenerEstadoClase(estado) string
+    +obtenerEstadoTexto(estado) string
 }
 
 class TicketComponent {
