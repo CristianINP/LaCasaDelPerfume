@@ -2,22 +2,22 @@ import conexion from '../config/db.js';
 
 export class TicketService {
   async createTicket(ticketData) {
-    const { orderId, id_usuario, metodo_pago, subtotal, impuestos, total, estado = 'APROBADO' } = ticketData;
-    
+    const { orderId, id_usuario, pedido_id = null, metodo_pago, subtotal, impuestos, total, estado = 'APROBADO' } = ticketData;
+
     return new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO tickets (orderId, id_usuario, fecha_compra, metodo_pago, subtotal, impuestos, total, estado)
-        VALUES (?, ?, NOW(), ?, ?, ?, ?, ?)
+        INSERT INTO tickets (orderId, id_usuario, pedido_id, fecha_compra, metodo_pago, subtotal, impuestos, total, estado)
+        VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?)
       `;
-      const values = [orderId, id_usuario, metodo_pago, subtotal, impuestos, total, estado];
-      
+      const values = [orderId, id_usuario, pedido_id, metodo_pago, subtotal, impuestos, total, estado];
+
       conexion.query(query, values, (error, results) => {
         if (error) {
           console.error('Error creating ticket:', error);
           reject(error);
           return;
         }
-        
+
         this.getTicketById(results.insertId)
           .then(ticket => resolve(ticket))
           .catch(err => reject(err));
@@ -84,12 +84,14 @@ export class TicketService {
   }
 
   async getTicketWithDetails(ticketId) {
-    return new Promise((resolve, reject) => {
+    // Obtener ticket + datos del usuario
+    const ticket = await new Promise((resolve, reject) => {
       const query = `
         SELECT
           t.id_ticket,
           t.orderId,
           t.id_usuario,
+          t.pedido_id,
           u.nombre,
           u.apellido,
           u.email,
@@ -104,25 +106,32 @@ export class TicketService {
         JOIN usuarios u ON t.id_usuario = u.id_usuario
         WHERE t.id_ticket = ?
       `;
-
       conexion.query(query, [ticketId], (error, results) => {
-        if (error) {
-          console.error('Error fetching ticket with details:', error);
-          reject(error);
-          return;
-        }
-
-        if (results.length === 0) {
-          reject(new Error('Ticket not found'));
-          return;
-        }
-
-        const ticket = results[0];
-        ticket.productos = [];
-
-        resolve(ticket);
+        if (error) { reject(error); return; }
+        if (results.length === 0) { reject(new Error('Ticket not found')); return; }
+        resolve(results[0]);
       });
     });
+
+    // Si hay pedido_id, cargar los productos desde detalles_pedido
+    if (ticket.pedido_id) {
+      ticket.productos = await new Promise((resolve) => {
+        const query = `
+          SELECT producto_id, nombre_producto AS name, precio_unitario AS price_unit,
+                 cantidad AS quantity, importe AS price
+          FROM detalles_pedido
+          WHERE pedido_id = ?
+        `;
+        conexion.query(query, [ticket.pedido_id], (error, rows) => {
+          if (error) { console.error('Error cargando productos del ticket:', error); resolve([]); return; }
+          resolve(rows);
+        });
+      });
+    } else {
+      ticket.productos = [];
+    }
+
+    return ticket;
   }
 
   async getUserPurchaseReport(userId) {

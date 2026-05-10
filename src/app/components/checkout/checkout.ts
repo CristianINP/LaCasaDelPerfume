@@ -115,7 +115,7 @@ export class Checkout implements AfterViewInit {
             importe:         item.product.price * item.quantity,
           }));
 
-          await this.historialService.guardarCompra({
+          const pedidoResp = await this.historialService.guardarCompra({
             folio,
             paypalOrderId: data.orderID,
             paypalEstado:  capture.status || 'COMPLETED',
@@ -125,13 +125,14 @@ export class Checkout implements AfterViewInit {
             items:         itemsParaHistorial,
           });
 
-          // Guardar ticket si hay usuario autenticado
+          // Guardar ticket vinculado al pedido (solo si hay usuario autenticado)
           const usuario = this.userService.getUsuarioActual();
           if (usuario) {
             firstValueFrom(
               this.ticketService.generarTicket({
                 orderId:     data.orderID,
                 id_usuario:  usuario.id_usuario,
+                pedido_id:   pedidoResp?.pedidoId ?? null,
                 metodo_pago: 'PayPal',
                 subtotal:    this.subtotalSnapshot,
                 impuestos:   this.ivaSnapshot,

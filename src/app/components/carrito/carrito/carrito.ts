@@ -219,13 +219,14 @@ export class CarritoComponent implements AfterViewInit, OnDestroy {
   }
 
   private async guardarPedidoEnBD(folio: string, paypalOrderId: string, captureData: any) {
-    const subtotal = this.carritoService.subtotal();
+    const subtotal  = this.carritoService.subtotal();
     const impuestos = this.carritoService.impuestos();
-    const total = this.carritoService.totalConImpuestos();
+    const total     = this.carritoService.totalConImpuestos();
 
-    // Guardar pedido con productos en detalles_pedido
+    // 1. Guardar pedido con productos en detalles_pedido
+    let pedidoId: number | null = null;
     try {
-      await firstValueFrom(
+      const resp = await firstValueFrom(
         this.paypalService.guardarPedido({
           folio,
           paypalOrderId,
@@ -243,23 +244,25 @@ export class CarritoComponent implements AfterViewInit, OnDestroy {
           })),
         })
       );
+      pedidoId = resp.pedidoId ?? null;
     } catch (err) {
       console.error('Error guardando pedido en BD:', err);
     }
 
-    // Guardar ticket si hay usuario autenticado
+    // 2. Guardar ticket vinculado al pedido (solo si hay usuario autenticado)
     const usuario = this.userService.getUsuarioActual();
     if (usuario) {
       try {
         await firstValueFrom(
           this.ticketService.generarTicket({
-            orderId:      paypalOrderId,
-            id_usuario:   usuario.id_usuario,
-            metodo_pago:  'PayPal',
+            orderId:     paypalOrderId,
+            id_usuario:  usuario.id_usuario,
+            pedido_id:   pedidoId,
+            metodo_pago: 'PayPal',
             subtotal,
             impuestos,
             total,
-            estado:       'APROBADO',
+            estado:      'APROBADO',
           })
         );
       } catch (err) {

@@ -2,7 +2,7 @@ import ticketService from '../services/ticket.service.js';
 
 export const createTicket = async (req, res) => {
   try {
-    const { orderId, id_usuario, metodo_pago, subtotal, impuestos, total, estado } = req.body;
+    const { orderId, id_usuario, pedido_id, metodo_pago, subtotal, impuestos, total, estado } = req.body;
 
     if (!orderId || !id_usuario || !subtotal || !impuestos || !total) {
       return res.status(400).json({
@@ -13,6 +13,7 @@ export const createTicket = async (req, res) => {
     const ticket = await ticketService.createTicket({
       orderId,
       id_usuario,
+      pedido_id: pedido_id || null,
       metodo_pago: metodo_pago || 'PayPal',
       subtotal,
       impuestos,
