@@ -1,14 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { NgIf } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { UserService, User } from '../../services/user/user';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, RouterLink, NgIf],
+  imports: [FormsModule, ReactiveFormsModule, NgIf],
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
