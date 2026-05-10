@@ -1,6 +1,6 @@
 import { Component, computed, signal, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Product } from '../../models/producto/producto';
+import { Product } from '../../components/producto/producto';
 import { ProductsService } from '../../services/productos/productos';
 import { CarritoService } from '../../services/carrito/carrito/carrito';
 import { SearchService } from '../../services/search/search';

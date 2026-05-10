@@ -16,7 +16,7 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { CarritoService } from '../../../services/carrito/carrito/carrito';
 import { PaypalService } from '../../../services/paypal/paypal';
-import { Product } from '../../../models/producto/producto';
+import { Product } from '../../../components/producto/producto';
 import { Navbar } from '../../navbar/navbar';
 import { Footer } from '../../footer/footer';
 import { environment } from '../../../../environments/environment';
