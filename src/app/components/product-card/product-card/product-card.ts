@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
-import { Product } from '../../../components/producto/producto';
+import { Product } from '../../../models/producto/producto';
 
 export interface ProductAddEvent {
   product: Product;
