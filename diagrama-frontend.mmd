@@ -1,0 +1,342 @@
+classDiagram
+direction TB
+
+%% ─── MODELOS ───────────────────────────────────────────────
+
+class Product {
+    <<interface>>
+    +number id
+    +string name
+    +number price
+    +string imageUrl
+    +string description
+    +string category
+    +boolean inStock
+}
+
+class PurchaseItem {
+    <<interface>>
+    +number producto_id
+    +string nombre_producto
+    +string categoria
+    +number cantidad
+    +number precio_unitario
+    +number importe
+}
+
+class PurchaseOrder {
+    <<interface>>
+    +number id
+    +string folio
+    +string fecha
+    +string paypal_orden_id
+    +string paypal_estado
+    +number subtotal
+    +number iva
+    +number total
+    +PurchaseItem[] items
+}
+
+class CartItem {
+    <<interface>>
+    +Product product
+    +number quantity
+}
+
+class User {
+    <<interface>>
+    +number id_usuario
+    +string email
+    +string nombre
+    +string apellido
+    +string telefono
+    +string created_at
+}
+
+class Ticket {
+    <<interface>>
+    +number id_ticket
+    +string orderId
+    +number id_usuario
+    +string fecha_compra
+    +string metodo_pago
+    +number subtotal
+    +number impuestos
+    +number total
+    +string estado
+}
+
+class TicketDetails {
+    <<interface>>
+    +string nombre
+    +string apellido
+    +string email
+    +string telefono
+    +Array productos
+}
+
+class PedidoPayload {
+    <<interface>>
+    +string folio
+    +string paypalOrderId
+    +string paypalEstado
+    +number subtotal
+    +number iva
+    +number total
+    +Array items
+}
+
+class ProductAddEvent {
+    <<interface>>
+    +Product product
+    +number quantity
+}
+
+%% ─── SERVICIOS ─────────────────────────────────────────────
+
+class ProductsService {
+    <<service>>
+    -HttpClient http
+    -string apiUrl
+    +getProducts() Observable
+    +getAll() Observable
+}
+
+class CarritoService {
+    <<service>>
+    -Signal productosSignal
+    +Computed groupedItems
+    +Computed itemCount
+    +Computed subtotal
+    +Computed impuestos
+    +Computed totalConImpuestos
+    +agregar(product, cantidad) void
+    +quitar(id) void
+    +removeAll(id) void
+    +vaciar() void
+    +descargarReciboXML(folio, paypalOrderId) void
+    +exportarXML() void
+}
+
+class SearchService {
+    <<service>>
+    -Signal searchSignal
+    -Signal categoryFilterSignal
+    +setSearch(query) void
+    +setCategoryFilter(category) void
+    +clearCategoryFilter() void
+}
+
+class PaypalService {
+    <<service>>
+    -HttpClient http
+    -string apiUrl
+    +crearOrden(payload) Observable
+    +capturarOrden(orderId) Observable
+    +guardarPedido(payload) Observable
+}
+
+class HistorialComprasService {
+    <<service>>
+    -HttpClient http
+    -string apiUrl
+    -Signal comprasSignal
+    +Signal loading
+    +Signal error
+    +obtenerCompras() Promise
+    +obtenerCompraPorId(id) Promise
+    +guardarCompra(compra) Promise
+    +limpiarCompras() void
+}
+
+class UserService {
+    <<service>>
+    -HttpClient http
+    -string apiUrl
+    +Signal usuario
+    +registrarUsuario(data) Observable
+    +loginUsuario(data) Observable
+    +setUsuario(usuario) void
+    +clearUsuario() void
+    +getUsuarioActual() User
+}
+
+class TicketService {
+    <<service>>
+    -HttpClient http
+    -string apiUrl
+    +generarTicket(data) Observable
+    +obtenerTicket(id) Observable
+    +obtenerTicketPorOrden(orderId) Observable
+    +obtenerTicketsPorUsuario(userId) Observable
+    +obtenerTicketConDetalles(id) Observable
+    +obtenerReporteCompras(userId) Observable
+}
+
+%% ─── COMPONENTES ────────────────────────────────────────────
+
+class Home {
+    <<component>>
+    +Signal showModal
+    +Signal modalProductName
+    +ngOnInit() void
+    +filterByCategory(category) void
+    +scrollToCatalog(event) void
+}
+
+class Navbar {
+    <<component>>
+    +Signal searchQuery
+    +onSearch() void
+    +clearSearch() void
+    +goToHistorial() void
+}
+
+class Footer {
+    <<component>>
+    +goHome() void
+    +goToCatalog() void
+    +goToHistorial() void
+}
+
+class Catalogo {
+    <<component>>
+    +Signal products
+    +Computed filteredProducts
+    +Computed categories
+    +ngOnInit() void
+    +agregar(event) void
+    +onCategoryChange(category) void
+    +clearAllFilters() void
+}
+
+class ProductCard {
+    <<component>>
+    +Product product
+    +EventEmitter add
+    +Signal quantity
+    +onAdd() void
+}
+
+class Producto {
+    <<component>>
+}
+
+class CarritoComponent {
+    <<component>>
+    +Computed groupedItems
+    +Computed subtotal
+    +Computed impuestos
+    +Computed totalConImpuestos
+    +Signal mensaje
+    +Signal pagoExitoso
+    +Signal folioPago
+    +ngAfterViewInit() void
+    +ngOnDestroy() void
+    +agregar(producto) void
+    +quitar(id) void
+    +vaciar() void
+    +exportarXML() void
+}
+
+class Checkout {
+    <<component>>
+    +Signal carrito
+    +Signal total
+    +ngAfterViewInit() void
+}
+
+class LoginComponent {
+    <<component>>
+    +string email
+    +string nombre
+    +boolean modoRegistro
+    +submit() Promise
+    +cerrarSesion() void
+}
+
+class HistorialCompras {
+    <<component>>
+    +Signal compras
+    +Signal loading
+    +Signal error
+    +ngOnInit() void
+    +cargarCompras() void
+}
+
+class DetalleCompra {
+    <<component>>
+    +PurchaseOrder compra
+    +Signal loading
+    +ngOnInit() void
+    +cargarCompra(id) void
+}
+
+class TicketComponent {
+    <<component>>
+    +Signal ticket
+    +Signal usuario
+    +Signal cargando
+    +ngOnInit() void
+    +descargarPDF() void
+}
+
+class Contactos {
+    <<component>>
+    +object formData
+    +Signal showSuccess
+    +onSubmit(event) void
+}
+
+class Privacidad {
+    <<component>>
+}
+
+%% ─── RELACIONES MODELOS ──────────────────────────────────────
+PurchaseOrder o-- PurchaseItem : contiene
+TicketDetails --|> Ticket : extiende
+CartItem --> Product : referencia
+
+%% ─── RELACIONES SERVICIOS → MODELOS ─────────────────────────
+ProductsService ..> Product : retorna
+CarritoService ..> Product : usa
+CarritoService ..> CartItem : crea
+PaypalService ..> PedidoPayload : recibe
+HistorialComprasService ..> PurchaseOrder : retorna
+UserService ..> User : retorna
+TicketService ..> Ticket : retorna
+TicketService ..> TicketDetails : retorna
+
+%% ─── RELACIONES COMPONENTES → SERVICIOS ─────────────────────
+Catalogo --> ProductsService : inyecta
+Catalogo --> CarritoService : inyecta
+Catalogo --> SearchService : inyecta
+Catalogo --> ProductCard : usa
+
+Home --> SearchService : inyecta
+Home --> CarritoService : inyecta
+
+Navbar --> CarritoService : inyecta
+Navbar --> SearchService : inyecta
+
+CarritoComponent --> CarritoService : inyecta
+CarritoComponent --> PaypalService : inyecta
+
+Checkout --> CarritoService : inyecta
+Checkout --> PaypalService : inyecta
+Checkout --> HistorialComprasService : inyecta
+
+HistorialCompras --> HistorialComprasService : inyecta
+DetalleCompra --> HistorialComprasService : inyecta
+
+LoginComponent --> UserService : inyecta
+
+TicketComponent --> TicketService : inyecta
+
+%% ─── RELACIONES COMPONENTES → MODELOS ───────────────────────
+ProductCard ..> Product : recibe
+ProductCard ..> ProductAddEvent : emite
+HistorialCompras ..> PurchaseOrder : muestra
+DetalleCompra ..> PurchaseOrder : muestra
+LoginComponent ..> User : usa
+TicketComponent ..> TicketDetails : muestra
