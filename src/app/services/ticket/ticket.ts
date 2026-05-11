@@ -5,7 +5,8 @@ import { environment } from '../../../environments/environment';
 export interface Ticket {
   id_ticket: number;
   orderId: string;
-  id_usuario: number;
+  id_usuario: number | null;
+  pedido_id: number | null;
   fecha_compra: string;
   metodo_pago: string;
   subtotal: number;
