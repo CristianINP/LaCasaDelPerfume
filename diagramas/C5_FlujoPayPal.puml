@@ -1,0 +1,85 @@
+@startuml
+title Flujo — Integración PayPal (Sistema Externo)
+
+start
+  :CarritoComponent / CheckoutComponent carga;
+
+  :Lee environment.ts:;
+  :paypal: {clientId: "...", apiUrl: "..."}
+
+  :loadPaypalSdk():;
+  :Crea <script> tag dinámicamente;
+  :src = "https://www.paypal.com/sdk/js?client-id=...";
+
+  if (Script ya existe en <head>?) then (Sí)
+    :Usa instancia existente de window.paypal;
+  else (No)
+    :Inyecta en document.head;
+    :Espera a que onload dispare;
+  endif
+
+  :Cuando window.paypal está disponible:;
+  :renderPaypalButton() / scheduleRender();
+
+  note right
+    paypal.Buttons({
+      createOrder(data, actions) {
+        // PaypalService.crearOrden({items, total})
+        // POST /api/paypal/create-order
+      },
+      onApprove(data, actions) {
+        // PaypalService.capturarOrden(orderID)
+        // POST /api/paypal/capture-order
+      },
+      onError(err) {
+        // manejar error
+      }
+    }).render("#paypal-button-container");
+  end note
+
+  :Renderiza botón PayPal en DOM;
+  :cargandoPaypal signal = false;
+
+  :Usuario hace click en botón PayPal;
+
+  :createOrder callback se ejecuta:;
+  :Construye payload {items[], total};
+  :PaypalService.crearOrden(payload);
+  :POST /api/paypal/create-order;
+  :Backend llama PayPal API /v2/checkout/orders;
+  :Retorna {id: orderID, status};
+
+  :Usuario redirigido a popup de PayPal;
+  :Inicia sesión / selecciona método de pago / aprueba;
+
+  :onApprove callback:;
+  :Recibe {orderID, payerID};
+  :PaypalService.capturarOrden(orderID);
+  :POST /api/paypal/capture-order {orderId};
+  :Backend llama /v2/checkout/orders/{orderID}/capture;
+
+  if (¿Captura exitosa?) then (Sí)
+    :PayPal retorna detalles completos de la transacción;
+
+    :Backend (POST /api/paypal/guardar-pedido):;
+    :  1. Inserta en tabla pedidos;
+    :  2. Inserta en tabla detalles_pedido;
+    :  3. Estado = "COMPLETED";
+
+    :Frontend (guardarPedidoEnBD / onApprove):;
+    :  1. PaypalService.guardarPedido(PedidoPayload);
+    :  2. TicketService.generarTicket(TicketCreateData);
+    :  3. CarritoService.descargarReciboXML(folio, orderID);
+    :  4. CarritoService.vaciar();
+
+    :Muestra confirmación al usuario;
+
+  else (Error)
+    :onError callback;
+    :Captura fallida;
+    :mensaje signal = "Error al procesar el pago";
+    :Usuario puede reintentar;
+  endif
+
+stop
+@enduml

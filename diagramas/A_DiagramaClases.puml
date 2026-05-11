@@ -1,0 +1,415 @@
+@startuml
+title Diagrama de Clases — La Casa del Perfume\n(Modelos, Servicios, Componentes)
+
+top to bottom direction
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam packageStyle rectangle
+skinparam backgroundColor #FAFAFA
+
+skinparam class {
+  BackgroundColor #EEF4FF
+  BorderColor #3A6BC9
+  ArrowColor #3A6BC9
+  FontColor #1A1A2E
+}
+
+' ════════════════════════════════════════════════════════════════════════════
+' MODELS (src/app/models)
+' ════════════════════════════════════════════════════════════════════════════
+package "📦 Modelos (src/app/models)" {
+
+  class Product {
+    + id: number
+    + name: string
+    + price: number
+    + imageUrl: string
+    + description: string
+    + category: string
+    + inStock: boolean
+  }
+
+  class CartItem {
+    + product: Product
+    + quantity: number
+  }
+
+  class PurchaseItem {
+    + producto_id: number
+    + nombre_producto: string
+    + categoria: string
+    + cantidad: number
+    + precio_unitario: number
+    + importe: number
+  }
+
+  class PurchaseOrder {
+    + id: number
+    + folio: string
+    + fecha: string
+    + paypal_orden_id: string
+    + paypal_estado: string
+    + subtotal: number
+    + iva: number
+    + total: number
+    + items: PurchaseItem[]
+  }
+
+  class PedidoPayload {
+    + folio: string
+    + paypalOrderId: string
+    + paypalEstado: string
+    + subtotal: number
+    + iva: number
+    + total: number
+    + items: PurchaseItem[]
+  }
+
+  class User {
+    + id_usuario: number
+    + email: string
+    + nombre: string
+    + apellido: string
+    + telefono?: string
+    + created_at?: string
+  }
+
+  class Ticket {
+    + id_ticket: number
+    + orderId: string
+    + id_usuario: number | null
+    + pedido_id: number | null
+    + fecha_compra: string
+    + metodo_pago: string
+    + subtotal: number
+    + impuestos: number
+    + total: number
+    + estado: string
+    + created_at: string
+  }
+
+  class TicketDetails {
+    (extiende Ticket)
+    --
+    + nombre: string
+    + apellido: string
+    + email: string
+    + telefono: string
+    + productos: ProductSnapshot[]
+  }
+}
+
+' ════════════════════════════════════════════════════════════════════════════
+' SERVICES (src/app/services)
+' ════════════════════════════════════════════════════════════════════════════
+package "⚙️ Servicios (src/app/services)" {
+
+  class CarritoService {
+    - productosSignal: WritableSignal<Product[]>
+    - {static} TAX_RATE: number = 0.16
+    ---
+    + productos: ReadonlySignal<Product[]>
+    + groupedItems: Signal<CartItem[]>      [computed]
+    + itemCount: Signal<number>             [computed]
+    + subtotal: Signal<number>              [computed]
+    + impuestos: Signal<number>             [computed]
+    + totalConImpuestos: Signal<number>     [computed]
+    + total: Signal<number>                 [alias de totalConImpuestos]
+    + carrito: Signal<{id, nombre, cantidad, precio}[]>  [computed]
+    ---
+    + agregar(producto: Product, cantidad?: number): void
+    + quitar(id: number): void
+    + removeAll(id: number): void
+    + vaciar(): void
+    + descargarReciboXML(folio: string, paypalOrderId: string): void
+    + exportarXML(): void
+  }
+
+  class SearchService {
+    - searchSignal: WritableSignal<string>
+    - categoryFilterSignal: WritableSignal<string>
+    ---
+    + search: ReadonlySignal<string>
+    + categoryFilter: ReadonlySignal<string>
+    ---
+    + setSearch(query: string): void
+    + setCategoryFilter(category: string): void
+    + clearCategoryFilter(): void
+  }
+
+  class ProductsService {
+    - http: HttpClient
+    - apiUrl: string = "http://localhost:3000/api/productos"
+    ---
+    + getProducts(): Observable<Product[]>
+    + getAll(): Observable<Product[]>
+  }
+
+  class HistorialComprasService {
+    - http: HttpClient
+    - apiUrl: string
+    - comprasSignal: WritableSignal<PurchaseOrder[]>
+    ---
+    + compras: ReadonlySignal<PurchaseOrder[]>
+    + loading: WritableSignal<boolean>
+    + error: WritableSignal<string | null>
+    ---
+    + obtenerCompras(): Promise<void>
+    + obtenerCompraPorId(id: number): Promise<PurchaseOrder | null>
+    + guardarCompra(orden: {...}): Promise<{success, pedidoId} | null>
+    + cargarComprasSimuladas(): Promise<void>
+    + limpiarCompras(): void
+  }
+
+  class PaypalService {
+    - http: HttpClient
+    - apiUrl: string
+    ---
+    + crearOrden(payload: {items, total}): Observable<{id, status}>
+    + capturarOrden(orderId: string): Observable<any>
+    + guardarPedido(payload: PedidoPayload): Observable<{success, pedidoId}>
+  }
+
+  class UserService {
+    - http: HttpClient
+    - apiUrl: string
+    ---
+    + usuario: WritableSignal<User | null>
+    ---
+    + registrarUsuario(data: UserRegistrationData): Observable<{message, usuario}>
+    + loginUsuario(data: {email}): Observable<{message, usuario}>
+    + obtenerUsuario(id: number): Observable<User>
+    + setUsuario(usuario: User): void
+    + clearUsuario(): void
+    + getUsuarioActual(): User | null
+  }
+
+  class TicketService {
+    - http: HttpClient
+    - apiUrl: string
+    ---
+    + generarTicket(data: TicketCreateData): Observable<{message, ticket}>
+    + obtenerTicket(id: number): Observable<Ticket>
+    + obtenerTicketPorOrden(orderId: string): Observable<Ticket>
+    + obtenerTicketsPorUsuario(usuarioId: number): Observable<Ticket[]>
+    + obtenerTicketConDetalles(id: number): Observable<TicketDetails>
+    + obtenerReporteCompras(usuarioId: number): Observable<ReporteCompras>
+  }
+}
+
+' ════════════════════════════════════════════════════════════════════════════
+' COMPONENTS (src/app/components)
+' ════════════════════════════════════════════════════════════════════════════
+package "🎨 Componentes (src/app/components)" {
+
+  class HomeComponent {
+    + showModal: WritableSignal<boolean>
+    + modalProductName: WritableSignal<string>
+    ---
+    + ngOnInit(): void
+    + ngAfterViewInit(): void
+    + onNavigate(): void
+    + onSubscribe(event: Event): void
+    + filterByCategory(category: string): void
+    + filterByCategoryAndScroll(event: Event, category: string): void
+    + scrollToCatalog(event: Event): void
+    - initStarfield(): void
+  }
+
+  class NavbarComponent {
+    + searchQuery: WritableSignal<string>
+    ---
+    + onSearch(): void
+    + clearSearch(): void
+    + goHome(): void
+    + goToCatalog(): void
+    + goToHistorial(): void
+  }
+
+  class CatalogoComponent {
+    + products: WritableSignal<Product[]>
+    + allProducts: WritableSignal<Product[]>
+    + selectedCategory: WritableSignal<string>
+    + minPrice: WritableSignal<number | null>
+    + maxPrice: WritableSignal<number | null>
+    + onlyInStock: WritableSignal<boolean>
+    + sortOption: WritableSignal<string>
+    + showModal: WritableSignal<boolean>
+    + modalProductName: WritableSignal<string>
+    ---
+    + categories: Signal<string[]>       [computed]
+    + filteredProducts: Signal<Product[]>[computed]
+    + inStockCount: Signal<number>       [computed]
+    ---
+    + ngOnInit(): void
+    + onCategoryChange(category: string): void
+    + getCategoryCount(category: string): number
+    + clearAllFilters(): void
+    + agregar(event: ProductAddEvent): void
+  }
+
+  class CarritoComponent {
+    + groupedItems: Signal<CartItem[]>
+    + subtotal: Signal<number>
+    + impuestos: Signal<number>
+    + totalConImpuestos: Signal<number>
+    + mensaje: WritableSignal<string>
+    + pagoExitoso: WritableSignal<boolean>
+    + folioPago: WritableSignal<string>
+    + cargandoPaypal: WritableSignal<boolean>
+    ---
+    + ngAfterViewInit(): void
+    + ngOnDestroy(): void
+    + agregar(producto: Product): void
+    + quitar(id: number): void
+    + removeAll(id: number): void
+    + vaciar(): void
+    + exportarXML(): void
+    - startCartWatcher(): void
+    - scheduleRender(): void
+    - loadPaypalSdk(): Promise<void>
+    - renderPaypalButton(): void
+    - guardarPedidoEnBD(folio, paypalOrderId, captureData): Promise<void>
+    - initStarfield(): void
+  }
+
+  class CheckoutComponent {
+    + carrito: Signal<{id,nombre,cantidad,precio}[]>
+    + total: Signal<number>
+    + subtotal: Signal<number>
+    + impuestos: Signal<number>
+    + mensaje: WritableSignal<string>
+    + mostrarTicket: WritableSignal<boolean>
+    + ticketGenerado: WritableSignal<any>
+    ---
+    + ngAfterViewInit(): void
+    + descargarTicketXML(): void
+    + descargarTicketPDF(): void
+    - loadPaypalSdk(): Promise<void>
+    - renderPaypalButton(): void
+  }
+
+  class HistorialComprasComponent {
+    + compras: ReadonlySignal<PurchaseOrder[]>
+    + loading: Signal<boolean>
+    + error: Signal<string | null>
+    ---
+    + ngOnInit(): void
+    + ngAfterViewInit(): void
+    + ngOnDestroy(): void
+    + cargarCompras(): void
+    + formatearMoneda(valor: number): string
+    + formatearFecha(fechaISO: string): string
+    + obtenerEstadoClase(estado: string): string
+    + obtenerEstadoTexto(estado: string): string
+    - initStarfield(): void
+  }
+
+  class DetalleCompraComponent {
+    + compra: PurchaseOrder | null
+    + loading: Signal<boolean>
+    + error: Signal<string | null>
+    ---
+    + ngOnInit(): void
+    + ngAfterViewInit(): void
+    + cargarCompra(id: number): void
+    + formatearMoneda(valor: number): string
+    + formatearFecha(fechaISO: string): string
+    + obtenerEstadoClase(estado: string): string
+    + obtenerEstadoTexto(estado: string): string
+    - initStarfield(): void
+  }
+
+  class ProductCardComponent {
+    + product: Product       [@Input required]
+    + add: EventEmitter<ProductAddEvent>  [@Output]
+    + quantity: WritableSignal<number>
+    ---
+    + incrementQuantity(): void
+    + decrementQuantity(): void
+    + onAdd(): void
+  }
+
+  class LoginComponent {
+    + email: string
+    + nombre: string
+    + apellido: string
+    + telefono: string
+    + modoRegistro: boolean
+    + mensaje: string
+    + cargando: boolean
+    ---
+    + get usuario(): User | null
+    ---
+    + alternarModo(): void
+    + submit(): Promise<void>
+    + limpiar(): void
+    + cerrarSesion(): void
+  }
+
+  class FooterComponent {
+    + goHome(): void
+    + goToCatalog(): void
+    + goToHistorial(): void
+  }
+
+  class ContactosComponent {
+    + formData: ContactForm
+    + showSuccess: WritableSignal<boolean>
+    ---
+    + ngAfterViewInit(): void
+    + onSubmit(event: Event): void
+    - initStarfield(): void
+  }
+
+  class PrivacidadComponent {
+    + ngAfterViewInit(): void
+    - initStarfield(): void
+  }
+}
+
+' ════════════════════════════════════════════════════════════════════════════
+' RELACIONES — Modelos
+' ════════════════════════════════════════════════════════════════════════════
+PurchaseOrder "1" *-- "many" PurchaseItem : contiene
+CartItem --> Product : contiene referencia
+TicketDetails --|> Ticket : extiende
+
+' ════════════════════════════════════════════════════════════════════════════
+' RELACIONES — Servicios
+' ════════════════════════════════════════════════════════════════════════════
+CarritoService --> Product : maneja
+CarritoService --> CartItem : agrupa
+SearchService --> Product : filtra
+ProductsService --> Product : consulta API
+HistorialComprasService --> PurchaseOrder : gestiona
+PaypalService --> PedidoPayload : procesa
+UserService --> User : gestiona sesión
+TicketService --> Ticket : gestiona
+TicketService --> TicketDetails : obtiene detalle
+
+' ════════════════════════════════════════════════════════════════════════════
+' RELACIONES — Componentes → Servicios
+' ════════════════════════════════════════════════════════════════════════════
+NavbarComponent --> SearchService : lee/escribe búsqueda
+NavbarComponent --> CarritoService : lee itemCount
+CatalogoComponent --> ProductsService : carga productos
+CatalogoComponent --> SearchService : observa filtros
+CatalogoComponent --> CarritoService : agrega items
+CarritoComponent --> CarritoService : observa estado del carrito
+CarritoComponent --> PaypalService : integra pago
+CarritoComponent --> TicketService : genera ticket post-pago
+CarritoComponent --> UserService : obtiene usuario
+CheckoutComponent --> CarritoService : lee carrito
+CheckoutComponent --> PaypalService : procesa pago
+CheckoutComponent --> HistorialComprasService : guarda pedido
+CheckoutComponent --> TicketService : genera ticket
+CheckoutComponent --> UserService : obtiene usuario
+HistorialComprasComponent --> HistorialComprasService : carga listado
+DetalleCompraComponent --> HistorialComprasService : obtiene detalle
+LoginComponent --> UserService : autenticación
+HomeComponent *-- CatalogoComponent : aloja sección /catalogo
+CatalogoComponent *-- ProductCardComponent : renderiza tarjetas
+
+@enduml

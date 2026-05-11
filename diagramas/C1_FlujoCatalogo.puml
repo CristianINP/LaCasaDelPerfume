@@ -1,0 +1,62 @@
+@startuml
+title Flujo — Módulo Catálogo y Búsqueda Reactiva (Signals)
+
+start
+  :Usuario abre aplicación;
+  :Se carga HomeComponent con animación Starfield;
+  :ngAfterViewInit() → initStarfield();
+
+  :Usuario navega a / o /catalogo;
+  note right
+    Ambas rutas cargan HomeComponent.
+    El Catálogo es una sección dentro de Home.
+  end note
+
+  :CatalogoComponent.ngOnInit();
+  :ProductsService.getProducts() → GET /api/productos;
+
+  if (¿Backend disponible?) then (Sí)
+    :Carga productos[] en products signal;
+    :allProducts signal = data;
+  else (Error / array vacío)
+    :products signal = [];
+    :Vista muestra "No hay productos disponibles";
+    stop
+  endif
+
+  :categories computed → extrae categorías únicas;
+  :filteredProducts computed → aplica filtros iniciales;
+  :Renderiza grid de ProductCardComponent;
+
+  repeat
+    :Usuario escribe en barra de búsqueda (Navbar);
+    :NavbarComponent.onSearch();
+    :SearchService.setSearch(query);
+
+    :CatalogoComponent observa searchService.search signal;
+    :filteredProducts computed se recalcula automáticamente;
+    :Filtra por nombre, descripción, categoría;
+
+    :Vista actualiza reactivamente (sin HTTP);
+
+  repeat while (¿Sigue buscando?) is (Sí)
+
+  :Usuario cambia categoría en panel de filtros;
+  :CatalogoComponent.onCategoryChange(category);
+  :selectedCategory signal = category;
+  :filteredProducts computed recalcula;
+
+  :Usuario ve producto en resultado;
+  :ProductCardComponent incrementa/decrementa cantidad;
+  :ProductCardComponent.onAdd() → emite ProductAddEvent;
+
+  :CatalogoComponent.agregar(event: ProductAddEvent);
+  :CarritoService.agregar(product, quantity);
+  :productosSignal se actualiza;
+  :itemCount computed se recalcula;
+
+  :NavbarComponent muestra contador actualizado;
+  :showModal signal = true → confirmación visual;
+
+stop
+@enduml

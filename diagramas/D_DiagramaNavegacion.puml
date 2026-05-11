@@ -1,0 +1,109 @@
+@startuml
+title Diagrama de Navegación — La Casa del Perfume (State Diagram)
+
+top to bottom direction
+
+skinparam state {
+  BackgroundColor #EEF4FF
+  BorderColor #3A6BC9
+  FontColor #1A1A2E
+  ArrowColor #3A6BC9
+}
+skinparam backgroundColor #FAFAFA
+
+[*] --> Home
+
+state "🏠 HOME + CATÁLOGO\n(/ y /catalogo)" as Home {
+  note right
+    Página de inicio con Starfield Canvas
+    HomeComponent aloja CatalogoComponent
+    Rutas '' y 'catalogo' → mismo componente
+    CTAs al Catálogo (scroll interno)
+    Login integrado en Navbar
+  end note
+}
+
+state "🛒 CARRITO\n(/carrito)" as Carrito {
+  note right
+    Resumen de items con cantidades
+    SDK PayPal cargado dinámicamente
+    Botón pagar con PayPal
+    Descarga automática de recibo XML
+  end note
+}
+
+state "💳 CHECKOUT\n(/checkout)" as Checkout {
+  note right
+    Resumen final con snapshot de items
+    PayPal buttons
+    Generación de ticket
+    Descarga XML / PDF
+  end note
+}
+
+state "📋 HISTORIAL\n(/historial)" as Historial {
+  note right
+    Listado de compras desde BD
+    Fallback a datos simulados
+    Tarjetas con glass-morphism
+    Link a detalle de cada compra
+  end note
+}
+
+state "📄 DETALLE COMPRA\n(/historial/:id)" as Detalle {
+  note right
+    Encabezado + tabla de productos
+    Subtotal, IVA 16%, Total
+    Starfield animation
+  end note
+}
+
+state "📞 CONTACTOS\n(/contactos)" as Contactos {
+  note right
+    Formulario de contacto
+    Starfield animation
+  end note
+}
+
+state "🔒 PRIVACIDAD\n(/privacidad)" as Privacidad {
+  note right
+    Política de privacidad
+    Starfield animation
+  end note
+}
+
+' Transiciones principales
+Home --> Carrito : Ícono carrito (Navbar)
+Home --> Historial : Enlace Navbar / Footer.goToHistorial()
+Home --> Contactos : Enlace Navbar / Footer
+Home --> Privacidad : Enlace Footer
+
+Carrito --> Home : "Seguir comprando" / Logo Navbar
+Carrito --> Checkout : "Ir a checkout"
+Carrito --> Historial : Navbar
+
+Checkout --> Historial : Pago exitoso\n(auto-redirect implícito)
+Checkout --> Home : Carrito vacío\n(botón "Ir a Catálogo")
+Checkout --> Carrito : "Volver al carrito"
+
+Historial --> Detalle : "Ver detalle"
+Historial --> Home : Navbar / Logo / Footer.goHome()
+
+Detalle --> Historial : "Volver"
+Detalle --> Home : Navbar / Logo
+
+Contactos --> Home : Navbar / Logo
+Privacidad --> Home : Navbar / Logo
+
+[*] -.-> Home : Entrada inicial\n(ruta '' o '**' → redirect '')
+
+note bottom
+  Rutas configuradas en app.routes.ts:
+  '' → Home | 'catalogo' → Home | 'carrito' → CarritoComponent
+  'checkout' → Checkout | 'contactos' → Contactos | 'privacidad' → Privacidad
+  'historial' → HistorialCompras | 'historial/:id' → DetalleCompra
+  '**' → redirect a ''
+  Login/Registro: modal integrado en NavbarComponent (no tiene ruta propia)
+end note
+
+@enduml

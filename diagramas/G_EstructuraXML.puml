@@ -1,0 +1,103 @@
+@startuml
+title Estructura del Recibo XML — La Casa del Perfume\n(Generado por CarritoService.descargarReciboXML())
+
+top to bottom direction
+
+skinparam class {
+  BackgroundColor #EEF4FF
+  BorderColor #3A6BC9
+  FontColor #1A1A2E
+}
+
+skinparam ArrowColor #3A6BC9
+skinparam backgroundColor #FAFAFA
+
+class "<recibo>" as ROOT {
+  (raíz del documento XML)
+  --
+  <folio> : string
+    ej: ORD-1777507322236
+  <paypal_orden_id> : string
+    ID de transacción PayPal
+  <fecha> : dateTime (ISO 8601)
+    ej: 2026-05-11T14:30:00.000Z
+  ---
+  Generado por: CarritoService.descargarReciboXML()
+  Momento: después de captura exitosa de PayPal
+  Descarga automática como recibo-{folio}.xml
+}
+
+class "<productos>" as PRODS {
+  Contenedor de items
+  Puede tener 1 a N elementos <producto>
+}
+
+class "<producto>" as PROD {
+  --
+  <id> : number
+  <nombre> : string  [XML-escaped]
+  <categoria> : string  [XML-escaped]
+  <cantidad> : integer ≥ 1
+  <precio_unitario> : decimal  [2 decimales]
+  <importe> : decimal  [cantidad × precio_unitario]
+  <descripcion> : string  [opcional, XML-escaped]
+}
+
+class "<totales>" as TOT {
+  (al nivel raíz, fuera de <productos>)
+  --
+  <subtotal> : decimal  [SUM de importes]
+  <iva> : decimal  [subtotal × 0.16]
+  <total> : decimal  [subtotal + iva]
+}
+
+' Jerarquía del documento
+ROOT "1" *-- "1" PRODS : <productos>
+ROOT "1" *-- "1" TOT : (plano, mismo nivel)
+PRODS "1" *-- "1..*" PROD : <producto> (1 o más)
+
+note right of ROOT
+  EJEMPLO DE INSTANCIA:
+
+  <?xml version="1.0" encoding="UTF-8"?>
+  <recibo>
+    <folio>ORD-1777507322236</folio>
+    <paypal_orden_id>5O123456789</paypal_orden_id>
+    <fecha>2026-05-11T14:30:00.000Z</fecha>
+    <productos>
+      <producto>
+        <id>1</id>
+        <nombre>Perfume Nocturnal Aura</nombre>
+        <categoria>Oriental</categoria>
+        <cantidad>2</cantidad>
+        <precio_unitario>85.00</precio_unitario>
+        <importe>170.00</importe>
+        <descripcion>Fragancia amaderada...</descripcion>
+      </producto>
+    </productos>
+    <subtotal>170.00</subtotal>
+    <iva>27.20</iva>
+    <total>197.20</total>
+  </recibo>
+end note
+
+note bottom of TOT
+  Cálculos automáticos:
+  • IVA siempre 16% (tasa fija)
+  • subtotal = SUM(precio × cantidad)
+  • total = subtotal + iva
+  • Moneda implícita: MXN (Pesos Mexicanos)
+  • Los valores de subtotal, iva, total
+    se toman de los Signals del CarritoService
+    en el momento del pago
+end note
+
+note bottom of PROD
+  Caracteres especiales en strings
+  son XML-escaped automáticamente:
+  & → &amp;   < → &lt;
+  > → &gt;    " → &quot;
+  ' → &apos;
+end note
+
+@enduml

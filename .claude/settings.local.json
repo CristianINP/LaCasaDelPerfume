@@ -13,7 +13,10 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(curl -s -X POST http://localhost:3000/api/paypal/guardar-pedido -H 'Content-Type: application/json' -d '{ *)",
-      "Bash(curl -s -X POST http://localhost:3000/api/tickets -H 'Content-Type: application/json' -d '{ *)"
+      "Bash(curl -s -X POST http://localhost:3000/api/tickets -H 'Content-Type: application/json' -d '{ *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\alexc\\\\Documents\\\\La-casa-del-perfume\\\\src\\\\app\" -Recurse -File -Filter \"*.ts\")",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Head -50)"
     ]
   }
 }

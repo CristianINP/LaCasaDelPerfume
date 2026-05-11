@@ -1,0 +1,116 @@
+@startuml
+title Diagrama Entidad-Relación — Base de Datos MariaDB\n(Tablas: productos, pedidos, detalles_pedido, usuarios, tickets)
+
+top to bottom direction
+
+skinparam entity {
+  BackgroundColor #EEF4FF
+  BorderColor #3A6BC9
+  FontColor #1A1A2E
+  ArrowColor #3A6BC9
+}
+
+skinparam backgroundColor #FAFAFA
+
+entity "productos" as PROD {
+  * id : INT(11) [PK]
+  --
+  nombre : VARCHAR(255) [NOT NULL]
+  descripcion : TEXT
+  precio : DECIMAL(10,2) [NOT NULL]
+  categoria : VARCHAR(100)
+  imagen : VARCHAR(500)
+  stock : INT(11) [DEFAULT 0]
+  created_at : DATETIME [DEFAULT CURRENT_TIMESTAMP]
+  updated_at : DATETIME [ON UPDATE CURRENT_TIMESTAMP]
+}
+
+entity "pedidos" as PED {
+  * id : INT(11) [PK]
+  --
+  folio : VARCHAR(100) [NOT NULL]
+  paypal_orden_id : VARCHAR(100)
+  paypal_estado : VARCHAR(50) [ENUM: CREATED, APPROVED, COMPLETED, FAILED]
+  subtotal : DECIMAL(10,2) [NOT NULL]
+  iva : DECIMAL(10,2) [16% calculado automáticamente]
+  total : DECIMAL(10,2) [NOT NULL]
+  fecha : TIMESTAMP [DEFAULT CURRENT_TIMESTAMP]
+  detalle_json : TEXT [Snapshot JSON de items al momento del pago]
+}
+
+entity "detalles_pedido" as DET {
+  * id : INT(11) [PK]
+  --
+  # pedido_id : INT(11) [FK → pedidos.id]
+  # producto_id : INT(11) [FK → productos.id]
+  nombre_producto : VARCHAR(255) [snapshot at order time]
+  categoria : VARCHAR(100)
+  cantidad : INT(11) [NOT NULL]
+  precio_unitario : DECIMAL(10,2) [snapshot at order time]
+  importe : DECIMAL(10,2) [cantidad * precio_unitario]
+}
+
+entity "usuarios" as USR {
+  * id_usuario : INT(11) [PK]
+  --
+  email : VARCHAR(255) [UNIQUE, NOT NULL]
+  nombre : VARCHAR(255) [NOT NULL]
+  apellido : VARCHAR(255) [NOT NULL]
+  telefono : VARCHAR(20)
+  created_at : DATETIME [DEFAULT CURRENT_TIMESTAMP]
+}
+
+entity "tickets" as TKT {
+  * id_ticket : INT(11) [PK]
+  --
+  # id_usuario : INT(11) [FK → usuarios.id_usuario, nullable]
+  # pedido_id : INT(11) [FK → pedidos.id, nullable]
+  orderId : VARCHAR(100) [NOT NULL]
+  fecha_compra : DATETIME [DEFAULT CURRENT_TIMESTAMP]
+  metodo_pago : VARCHAR(50) [DEFAULT 'PayPal']
+  subtotal : DECIMAL(10,2) [NOT NULL]
+  impuestos : DECIMAL(10,2) [NOT NULL]
+  total : DECIMAL(10,2) [NOT NULL]
+  estado : VARCHAR(50) [DEFAULT 'COMPLETED']
+  created_at : DATETIME [DEFAULT CURRENT_TIMESTAMP]
+}
+
+' Relaciones
+PED "1" ||--o{ DET : "1:N\ntiene\ndetalles"
+PROD "1" ||--o{ DET : "1:N\nreferenciado\nen"
+USR "1" ||--o{ TKT : "1:N\ngenera\ntickets"
+PED "1" ||--o| TKT : "1:0..1\norigina\nticket"
+
+note right of PROD
+  Catálogo principal de productos.
+  Foto almacenada como URL en 'imagen'.
+  Stock actualizable por administrador.
+end note
+
+note right of PED
+  Registro de cada transacción/orden.
+  Folio único formato: ORD-{timestamp}.
+  paypal_estado sincronizado con PayPal API.
+  detalle_json: Snapshot JSON de los items
+  (Opción B: fallback si se borran productos).
+end note
+
+note right of DET
+  Líneas de detalle de pedido.
+  Guarda snapshot de nombre y precio
+  en momento de la compra (histórico).
+end note
+
+note right of USR
+  Usuarios registrados en la plataforma.
+  Sesión persistida en localStorage
+  con clave 'usuario_lcperfume'.
+end note
+
+note right of TKT
+  Ticket digital por compra realizada.
+  Vincula usuario, pedido y transacción PayPal.
+  id_usuario puede ser null (compra anónima).
+end note
+
+@enduml

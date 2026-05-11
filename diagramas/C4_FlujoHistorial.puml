@@ -1,0 +1,62 @@
+@startuml
+title Flujo — Módulo Historial de Compras
+
+start
+  :Usuario hace click en "Historial";
+  :Navbar / Footer.goToHistorial() → ruta /historial;
+
+  :HistorialComprasComponent.ngOnInit();
+  :cargarCompras() → HistorialComprasService.cargarComprasSimuladas();
+
+  :loading signal = true;
+  :HistorialComprasService.obtenerCompras();
+  :GET /api/pedidos/todos;
+
+  if (¿Backend responde con datos?) then (Sí)
+    :Parsea respuesta → PurchaseOrder[];
+    :Para cada pedido: cargarDetallesPedido();
+    :GET /api/pedidos/:id/detalles;
+    :compras signal = data[];
+  else (Fallo / array vacío)
+    :Usa datos simulados (compras de ejemplo);
+    :compras signal = comprasSimuladas[];
+  endif
+
+  :loading signal = false;
+
+  :ngAfterViewInit() → initStarfield();
+  :Renderiza tarjetas con glass-morphism;
+  :Cada tarjeta muestra:;
+  :  • Folio (formatearMoneda);
+  :  • Fecha (formatearFecha);
+  :  • Total (formatearMoneda);
+  :  • Estado PayPal (obtenerEstadoTexto / obtenerEstadoClase);
+
+  repeat
+    :Usuario observa listado;
+  repeat while (¿Quiere ver detalle?) is (Sí)
+
+  :Usuario hace click en "Ver detalle" de una compra;
+  :Navega a /historial/:id;
+
+  :DetalleCompraComponent.ngOnInit();
+  :Lee id desde ActivatedRoute.paramMap;
+
+  :cargarCompra(id);
+  :HistorialComprasService.obtenerCompraPorId(id);
+  :GET /api/pedidos/:id;
+  :Luego: GET /api/pedidos/:id/detalles;
+
+  :compra = PurchaseOrder con items;
+
+  :ngAfterViewInit() → initStarfield();
+  :Renderiza:;
+  :  • Encabezado (folio, fecha, estado);
+  :  • Tabla de productos (cantidad / precio);
+  :  • Subtotal, IVA, Total;
+
+  :Usuario hace click en "Volver";
+  :navigate(/historial);
+
+stop
+@enduml

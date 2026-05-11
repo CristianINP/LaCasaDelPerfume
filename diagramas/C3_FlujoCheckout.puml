@@ -1,0 +1,72 @@
+@startuml
+title Flujo — Módulo Checkout
+
+start
+  :Usuario navega a /checkout;
+
+  :CheckoutComponent.ngAfterViewInit();
+  :Lee CarritoService.carrito (computed Signal);
+
+  if (¿Carrito vacío?) then (Sí)
+    :Muestra alerta "Carrito vacío";
+    :Botón "Ir a Catálogo" redirige;
+    stop
+  else (No)
+    :Muestra resumen:;
+    :  • Listado de productos (carrito signal);
+    :  • Subtotal (subtotal signal);
+    :  • IVA 16% (impuestos signal);
+    :  • Total (total signal);
+  endif
+
+  :loadPaypalSdk() → inyecta JS si es necesario;
+
+  if (¿SDK listo?) then (Sí)
+    :renderPaypalButton();
+    :paypal.Buttons() renderiza en #paypal-button-container;
+  else (No)
+    :cargandoPaypal = true;
+    :Muestra spinner;
+  endif
+
+  :Usuario revisa resumen;
+  :Hace click en "Pagar con PayPal";
+
+  :Guarda snapshot antes de pagar:;
+  :itemsSnapshot, subtotalSnapshot, ivaSnapshot, totalSnapshot;
+
+  :createOrder callback:;
+  :PaypalService.crearOrden({items, total});
+  :POST /api/paypal/create-order;
+  :Payload con items del carrito;
+
+  :onApprove callback con orderID:;
+  :PaypalService.capturarOrden(orderID);
+  :POST /api/paypal/capture-order;
+
+  if (¿Captura exitosa?) then (Sí)
+    :Genera folio único: ORD-{Date.now()};
+
+    :1. HistorialComprasService.guardarCompra(orden);
+    :   Calcula: subtotal, iva (16%), total;
+    :   POST /api/pedidos/guardar-compra;
+    :   Registra detalles por producto (snapshot);
+
+    :2. TicketService.generarTicket(TicketCreateData);
+    :   POST /api/tickets;
+    :   Retorna ticket generado;
+
+    :3. CarritoService.vaciar();
+
+    :mostrarTicket signal = true;
+    :ticketGenerado signal = ticket;
+    :Muestra ticket en vista;
+    :Opciones: descargarTicketXML() / descargarTicketPDF();
+
+  else (Error)
+    :mensaje signal = error;
+    :Botón "Reintentar";
+  endif
+
+stop
+@enduml

@@ -1,0 +1,151 @@
+@startuml
+title Diagrama de Casos de Uso — La Casa del Perfume
+
+top to bottom direction
+
+skinparam packageStyle rectangle
+skinparam backgroundColor #FAFAFA
+
+skinparam actor {
+  BackgroundColor #FFF8E1
+  BorderColor #C9A84C
+  FontColor #1A1A2E
+}
+
+skinparam usecase {
+  BackgroundColor #EEF4FF
+  BorderColor #3A6BC9
+  FontColor #1A1A2E
+}
+
+skinparam ArrowColor #3A6BC9
+
+' Actores
+actor "👤 Cliente\n(Usuario Web)" as Cliente
+actor "💳 PayPal\n(Sistema Externo)" as PayPal
+actor "⚙️ Backend API\n(Node.js/Express)" as Backend
+actor "🗄️ Base de Datos\n(MariaDB)" as Database
+
+' Sistema principal
+rectangle "La Casa del Perfume — E-Commerce Web" {
+
+  ' Catálogo y búsqueda
+  usecase "UC-01: Ver catálogo\nde productos" as UC01
+  usecase "UC-02: Buscar\nproducto por nombre" as UC02
+  usecase "UC-03: Filtrar\npor categoría" as UC03
+
+  ' Carrito
+  usecase "UC-04: Agregar\nproducto al carrito" as UC04
+  usecase "UC-05: Ver carrito\nde compras" as UC05
+  usecase "UC-06: Modificar\ncantidad en carrito" as UC06
+  usecase "UC-07: Eliminar\nproducto del carrito" as UC07
+
+  ' Pago
+  usecase "UC-08: Ir a checkout" as UC08
+  usecase "UC-09: Realizar pago\ncon PayPal" as UC09
+  usecase "UC-10: Generar\nrecibo XML" as UC10
+  usecase "UC-11: Generar\nticket de compra" as UC11
+
+  ' Historial
+  usecase "UC-12: Ver historial\nde compras" as UC12
+  usecase "UC-13: Ver detalle\nde compra anterior" as UC13
+
+  ' Usuario
+  usecase "UC-14: Registrarse" as UC14
+  usecase "UC-15: Iniciar sesión" as UC15
+  usecase "UC-16: Cerrar sesión" as UC16
+
+  ' Información
+  usecase "UC-17: Ver contacto" as UC17
+  usecase "UC-18: Ver privacidad" as UC18
+
+  ' Backend use cases
+  usecase "UC-20: Consultar\nproductos desde API" as UC20
+  usecase "UC-21: Crear orden\nPayPal" as UC21
+  usecase "UC-22: Capturar\npago PayPal" as UC22
+  usecase "UC-23: Guardar pedido\nen BD" as UC23
+  usecase "UC-24: Consultar\npedidos" as UC24
+  usecase "UC-25: Registrar\nticket en BD" as UC25
+  usecase "UC-26: Gestionar\nusuarios" as UC26
+}
+
+' Relaciones Cliente
+Cliente --> UC01
+Cliente --> UC02
+Cliente --> UC03
+Cliente --> UC04
+Cliente --> UC05
+Cliente --> UC06
+Cliente --> UC07
+Cliente --> UC08
+Cliente --> UC09
+Cliente --> UC12
+Cliente --> UC13
+Cliente --> UC14
+Cliente --> UC15
+Cliente --> UC16
+Cliente --> UC17
+Cliente --> UC18
+
+' Include relationships
+UC01 ..> UC20 : <<include>>
+UC02 ..> UC01 : <<extend>>
+UC03 ..> UC01 : <<extend>>
+
+UC04 ..> UC05 : (requiere)
+UC05 ..> UC08 : (precede a)
+UC08 ..> UC09 : <<include>>
+UC09 ..> UC21 : <<include>>
+UC09 ..> UC22 : <<include>>
+UC09 ..> UC23 : <<include>>
+UC09 ..> UC10 : <<include>>
+UC09 ..> UC11 : <<include>>
+
+UC12 ..> UC24 : <<include>>
+UC13 ..> UC24 : <<include>>
+
+UC14 ..> UC26 : <<include>>
+UC15 ..> UC26 : <<include>>
+
+' Relaciones sistemas externos
+PayPal --> UC21
+PayPal --> UC22
+
+Backend --> UC20
+Backend --> UC21
+Backend --> UC22
+Backend --> UC23
+Backend --> UC24
+Backend --> UC25
+Backend --> UC26
+
+Database --> UC23
+Database --> UC24
+Database --> UC25
+Database --> UC26
+
+note right of UC09
+  Caso de uso crítico:
+  Integración con PayPal
+  para captura de pago
+end note
+
+note right of UC10
+  XML generado en frontend por
+  CarritoService.descargarReciboXML()
+  después de captura exitosa
+end note
+
+note right of UC11
+  Ticket creado vía TicketService
+  en CarritoComponent y Checkout
+  POST /api/tickets
+end note
+
+note right of UC14
+  Login y Registro en LoginComponent
+  integrado dentro de NavbarComponent
+  (no tiene ruta propia en el router)
+end note
+
+@enduml

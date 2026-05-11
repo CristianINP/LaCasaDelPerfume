@@ -1,0 +1,86 @@
+@startuml
+title Flujo — Módulo Carrito con PayPal SDK Dinámico
+
+start
+  :Usuario hace click en ícono de carrito;
+  :Navega a /carrito;
+
+  :CarritoComponent.ngAfterViewInit();
+  :Observa CarritoService.groupedItems (computed Signal);
+
+  if (¿Carrito vacío?) then (Sí)
+    :Muestra "Tu carrito está vacío";
+    :Botón "Ir a catálogo";
+    stop
+  else (No — hay items)
+    :Itera sobre groupedItems signal;
+    :Renderiza cada item con cantidad y controles;
+    :Muestra subtotal = SUM(price × quantity);
+    :Muestra impuestos = subtotal × 0.16;
+    :Muestra totalConImpuestos = subtotal + impuestos;
+  endif
+
+  :loadPaypalSdk() → crea <script> dinámicamente;
+  note right
+    src = "https://www.paypal.com/sdk/js?client-id=..."
+    Inyecta en <head> si no existe
+  end note
+
+  :startCartWatcher() → setInterval(200ms);
+  note right
+    Monitorea cambios en el carrito
+    para re-renderizar botón PayPal
+  end note
+
+  if (¿window.paypal disponible?) then (Sí)
+    :scheduleRender() → renderPaypalButton();
+    :paypal.Buttons({...}).render('#paypal-buttons');
+  else (No)
+    :Reintenta en siguiente ciclo del watcher;
+  endif
+
+  :cargandoPaypal signal = false;
+  :Usuario ve botón "Pagar con PayPal";
+  :Hace click;
+
+  :createOrder callback:;
+  :PaypalService.crearOrden({items, total});
+  :POST /api/paypal/create-order;
+  :PayPal retorna {id: orderID};
+
+  :Usuario aprueba en popup de PayPal;
+
+  :onApprove callback:;
+  :PaypalService.capturarOrden(orderID);
+  :POST /api/paypal/capture-order;
+
+  if (¿Captura OK?) then (Sí)
+    :captureData recibido de PayPal;
+    :guardarPedidoEnBD(folio, paypalOrderId, captureData):;
+
+    :1. PaypalService.guardarPedido(PedidoPayload);
+    :   POST /api/paypal/guardar-pedido;
+    :   Backend inserta en pedidos + detalles_pedido;
+
+    :2. TicketService.generarTicket(TicketCreateData);
+    :   POST /api/tickets;
+
+    :3. CarritoService.descargarReciboXML(folio, paypalOrderId);
+    :   Genera y descarga archivo .xml automáticamente;
+
+    :4. CarritoService.vaciar();
+    :   productosSignal = [];
+    :   itemCount = 0;
+
+    :pagoExitoso signal = true;
+    :folioPago signal = folio;
+    :Muestra confirmación de pago;
+
+  else (No/Error)
+    :onError callback;
+    :mensaje signal = "Error al procesar el pago";
+    :Usuario puede reintentar;
+  endif
+
+stop
+@enduml

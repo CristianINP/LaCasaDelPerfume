@@ -1,0 +1,1174 @@
+================================================================================
+                    LA CASA DEL PERFUME — DIAGRAMAS PlantUML
+                  Proyecto: Angular 21 + Node.js + MariaDB + PayPal
+                         Versión: 2.0 — Actualizado Mayo 2026
+================================================================================
+
+Este archivo contiene los 6 anexos técnicos en formato PlantUML:
+
+  ✓ ANEXO A — Diagrama de Clases UML
+  ✓ ANEXO B — Diagrama Entidad-Relación (ER)
+  ✓ ANEXO C — Diagrama de Flujo (por módulos: C1-C5)
+  ✓ ANEXO D — Diagrama de Navegación (State Diagram)
+  ✓ ANEXO F — Diagrama de Casos de Uso
+  ✓ ANEXO G — Estructura del Recibo XML
+
+Copia cada bloque @startuml...@enduml en plantuml.com o en tu IDE.
+
+================================================================================
+                     ANEXO A — DIAGRAMA DE CLASES UML
+================================================================================
+
+@startuml AnexoA_DiagramaClases
+!define BGCOLOR_MODEL #E8F4FF
+!define BGCOLOR_SERVICE #FFF8E1
+!define BGCOLOR_COMPONENT #F0FFE8
+!define BORDER_COLOR #3A6BC9
+
+title Diagrama de Clases — La Casa del Perfume\n(Modelos, Servicios, Componentes)
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam packageStyle rectangle
+skinparam backgroundColor #FAFAFA
+
+skinparam class {
+  BackgroundColor #EEF4FF
+  BorderColor #3A6BC9
+  ArrowColor #3A6BC9
+  FontColor #1A1A2E
+}
+
+' ════════════════════════════════════════════════════════════════════════════
+' MODELS (src/app/models)
+' ════════════════════════════════════════════════════════════════════════════
+package "📦 Modelos (src/app/models)" {
+
+  class Producto {
+    - id: number
+    - nombre: string
+    - descripcion: string
+    - precio: number
+    - categoria: string
+    - imagen: string
+    - stock: number
+  }
+
+  class CarritoItem {
+    - producto: Producto
+    - cantidad: number
+    ---
+    + total(): number
+  }
+
+  class PurchaseItem {
+    - producto_id: number
+    - nombre_producto: string
+    - categoria: string
+    - cantidad: number
+    - precio_unitario: number
+    - importe: number
+  }
+
+  class PurchaseOrder {
+    - id: number
+    - folio: string
+    - paypal_orden_id: string
+    - paypal_estado: string
+    - subtotal: number
+    - iva: number [IVA 16%]
+    - total: number
+    - fecha: Date
+    - items: PurchaseItem[]
+  }
+
+  class PayPalPayload {
+    - intent: string = "CAPTURE"
+    - purchase_units: PurchaseUnit[]
+  }
+
+  class PurchaseUnit {
+    - amount: Amount
+    - items: PayPalItem[]
+  }
+
+  class Amount {
+    - currency_code: string = "MXN"
+    - value: string
+  }
+
+  class PayPalItem {
+    - name: string
+    - quantity: string
+    - unit_amount: UnitAmount
+  }
+
+  class UnitAmount {
+    - currency_code: string = "MXN"
+    - value: string
+  }
+}
+
+' ════════════════════════════════════════════════════════════════════════════
+' SERVICES (src/app/services)
+' ════════════════════════════════════════════════════════════════════════════
+package "⚙️ Servicios (src/app/services)" {
+
+  class CarritoService {
+    - productosSignal: Signal<Producto[]>
+    - {static} TAX_RATE: number = 0.16
+    ---
+    + groupedItems: WritableSignal<CarritoItem[]>
+    + itemCount: Signal<number>
+    + subtotal: Signal<number>
+    + impuestos: Signal<number>
+    + totalConImpuestos: Signal<number>
+    + carrito: Signal<PayPalPayload>
+    ---
+    + agregarProducto(producto: Producto): void
+    + quitarProducto(id: number): void
+    + actualizarCantidad(id: number, cantidad: number): void
+    + limpiarCarrito(): void
+    + getGroupedItems(): CarritoItem[]
+  }
+
+  class SearchService {
+    + search: WritableSignal<string>
+    + categoryFilter: WritableSignal<string>
+    ---
+    + setSearch(q: string): void
+    + setCategory(cat: string): void
+    + reset(): void
+    + getFilteredProducts(productos: Producto[]): Producto[]
+  }
+
+  class ProductosService {
+    - http: HttpClient
+    - API_URL: string = "http://localhost:3000/api"
+    ---
+    + getProductos(): Observable<Producto[]>
+    + getProductoById(id: number): Observable<Producto>
+    + getProductosByCategoria(cat: string): Observable<Producto[]>
+  }
+
+  class HistorialComprasService {
+    - http: HttpClient
+    - API_URL: string = "http://localhost:3000/api"
+    ---
+    + compras: WritableSignal<PurchaseOrder[]>
+    + loading: WritableSignal<boolean>
+    + error: WritableSignal<string | null>
+    ---
+    + obtenerCompras(): Observable<PurchaseOrder[]>
+    + obtenerCompraPorId(id: number): Observable<PurchaseOrder>
+    + guardarCompra(orden: PurchaseOrder): Observable<any>
+    + cargarComprasSimuladas(): void
+  }
+
+  class PayPalService {
+    - http: HttpClient
+    - API_URL: string = "http://localhost:3000/api/paypal"
+    ---
+    + createOrder(payload: PayPalPayload): Observable<{id: string}>
+    + captureOrder(orderID: string): Observable<any>
+    + guardarPedido(detalles: any): Observable<any>
+  }
+}
+
+' ════════════════════════════════════════════════════════════════════════════
+' COMPONENTS (src/app/components)
+' ════════════════════════════════════════════════════════════════════════════
+package "🎨 Componentes (src/app/components)" {
+
+  class HomeComponent {
+    - starfieldCanvas: ElementRef
+    ---
+    + ngOnInit(): void
+    - initStarfield(): void
+    - drawStars(): void
+  }
+
+  class NavbarComponent {
+    + searchService: SearchService
+    + carritoService: CarritoService
+    + itemCount: Signal<number>
+    ---
+    + onSearch(q: string): void
+    + onCategory(cat: string): void
+    + navigateTo(route: string): void
+  }
+
+  class CatalogoComponent {
+    - productosService: ProductosService
+    - searchService: SearchService
+    - carritoService: CarritoService
+    + productos: Signal<Producto[]>
+    + productosFiltrados: Signal<Producto[]>
+    ---
+    + ngOnInit(): void
+    + agregarAlCarrito(producto: Producto): void
+    - filterProducts(): void
+  }
+
+  class CarritoComponent {
+    - carritoService: CarritoService
+    - historialService: HistorialComprasService
+    - paypalService: PayPalService
+    + groupedItems: Signal<CarritoItem[]>
+    + total: Signal<number>
+    ---
+    + ngAfterViewInit(): void
+    + loadPayPalSDK(): void
+    + generarXMLRecibo(): string
+    + onPagoExitoso(details: any): void
+    - createPayPalButtons(): void
+  }
+
+  class CheckoutComponent {
+    - carritoService: CarritoService
+    - historialService: HistorialComprasService
+    - paypalService: PayPalService
+    ---
+    + ngOnInit(): void
+    + loadPayPalSDK(): void
+    + onPagoExitoso(details: any): void
+  }
+
+  class HistorialComprasComponent {
+    - historialService: HistorialComprasService
+    + compras: Signal<PurchaseOrder[]>
+    + loading: Signal<boolean>
+    ---
+    + ngOnInit(): void
+    + verDetalle(id: number): void
+    + formatearFecha(date: Date): string
+  }
+
+  class DetalleCompraComponent {
+    - historialService: HistorialComprasService
+    - route: ActivatedRoute
+    + compra: Signal<PurchaseOrder>
+    ---
+    + ngOnInit(): void
+    + volver(): void
+    + descargarRecibo(): void
+  }
+
+  class FooterComponent {
+    + irHistorial(): void
+    + irContactos(): void
+  }
+
+  class ContactosComponent {
+    + enviarMensaje(): void
+  }
+
+  class PrivacidadComponent {
+  }
+}
+
+' ════════════════════════════════════════════════════════════════════════════
+' RELACIONES
+' ════════════════════════════════════════════════════════════════════════════
+
+' Models relationships
+PurchaseOrder "1" *-- "many" PurchaseItem : contiene
+PayPalPayload "1" *-- "many" PurchaseUnit : purchase_units
+PurchaseUnit "1" *-- "many" PayPalItem : items
+CarritoItem --> Producto : contiene referencia
+
+' Services relationships
+CarritoService --> Producto : maneja
+CarritoService --> CarritoItem : agrupa
+CarritoService --> PayPalPayload : genera
+SearchService --> Producto : filtra
+ProductosService --> Producto : consulta API
+HistorialComprasService --> PurchaseOrder : gestiona
+PayPalService --> PayPalPayload : procesa
+
+' Component relationships
+NavbarComponent --> SearchService : lee/escribe
+NavbarComponent --> CarritoService : lee itemCount
+CatalogoComponent --> ProductosService : consume
+CatalogoComponent --> SearchService : observa filtros
+CatalogoComponent --> CarritoService : agrega items
+CarritoComponent --> CarritoService : observa estado
+CarritoComponent --> PayPalService : integra pago
+CarritoComponent --> HistorialComprasService : guarda compra
+CheckoutComponent --> CarritoService : lee carrito
+CheckoutComponent --> PayPalService : procesa pago
+CheckoutComponent --> HistorialComprasService : registra
+HistorialComprasComponent --> HistorialComprasService : carga listado
+DetalleCompraComponent --> HistorialComprasService : obtiene detalle
+HomeComponent *-- CatalogoComponent : aloja en /catalogo
+
+@enduml
+
+================================================================================
+                    ANEXO B — DIAGRAMA ENTIDAD-RELACIÓN (ER)
+================================================================================
+
+@startuml AnexoB_DiagramaER
+title Diagrama Entidad-Relación — Base de Datos MariaDB\n(Tablas: productos, pedidos, detalles_pedido)
+
+skinparam entity {
+  BackgroundColor #EEF4FF
+  BorderColor #3A6BC9
+  FontColor #1A1A2E
+  ArrowColor #3A6BC9
+}
+
+skinparam backgroundColor #FAFAFA
+
+entity "productos" as PROD {
+  * id : INT(11) [PK]
+  --
+  nombre : VARCHAR(255) [NOT NULL]
+  descripcion : TEXT
+  precio : DECIMAL(10,2) [NOT NULL]
+  categoria : VARCHAR(100)
+  imagen : VARCHAR(500)
+  stock : INT(11) [DEFAULT 0]
+  created_at : DATETIME [DEFAULT CURRENT_TIMESTAMP]
+  updated_at : DATETIME [ON UPDATE CURRENT_TIMESTAMP]
+}
+
+entity "pedidos" as PED {
+  * id : INT(11) [PK]
+  --
+  folio : VARCHAR(30) [UNIQUE, NOT NULL]
+  cliente_nombre : VARCHAR(255)
+  cliente_email : VARCHAR(255)
+  paypal_orden_id : VARCHAR(100) [UNIQUE]
+  paypal_estado : VARCHAR(50) [ENUM: CREATED, APPROVED, COMPLETED, FAILED]
+  subtotal : DECIMAL(10,2) [NOT NULL]
+  iva : DECIMAL(10,2) [16% calulado automáticamente]
+  total : DECIMAL(10,2) [NOT NULL]
+  fecha : DATETIME [DEFAULT CURRENT_TIMESTAMP]
+  notas : TEXT
+}
+
+entity "detalles_pedido" as DET {
+  * id : INT(11) [PK]
+  --
+  # pedido_id : INT(11) [FK → pedidos.id]
+  # producto_id : INT(11) [FK → productos.id]
+  nombre_producto : VARCHAR(255) [snapshot at order time]
+  categoria : VARCHAR(100)
+  cantidad : INT(11) [NOT NULL]
+  precio_unitario : DECIMAL(10,2) [snapshot at order time]
+  importe : DECIMAL(10,2) [cantidad * precio_unitario]
+}
+
+' Relaciones
+PED "1" ||--o{ DET : "1:N\ntiene\ndetalles"
+PROD "1" ||--o{ DET : "1:N\nreferenciado\nen"
+
+note right of PROD
+  Catálogo principal de productos.
+  Foto almacenada como URL en 'imagen'.
+  Stock actualizable por administrador.
+end note
+
+note right of PED
+  Registro de cada transacción/orden.
+  Folio único formato: ORD-{timestamp}.
+  paypal_estado sincronizado con PayPal API.
+end note
+
+note right of DET
+  Líneas de detalle de pedido.
+  Guarda snapshot de nombre y precio
+  en momento de la compra (histórico).
+end note
+
+@enduml
+
+================================================================================
+                 ANEXO C — DIAGRAMA DE FLUJO (por módulos)
+================================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+C.1 — FLUJO: CATÁLOGO Y BÚSQUEDA REACTIVA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@startuml AnexoC1_FlujoCatalogo
+title Flujo — Módulo Catálogo y Búsqueda Reactiva (Signals)
+
+start
+  :Usuario abre aplicación;
+  :Se carga Home con animación Starfield;
+
+  :Usuario navega a /catalogo;
+
+  :CatalogoComponent.ngOnInit();
+  :ProductosService.getProductos() → GET /api/productos;
+
+  if (¿Backend disponible?) then (Sí)
+    :Carga productos[] en Signal;
+    :cargarProductos.signal = data;
+  else (Error)
+    :error.signal = "No hay conexión";
+    stop
+  endif
+
+  :Renderiza producto grid;
+
+  repeat
+    :Usuario escribe en barra de búsqueda;
+    :Emite evento → Navbar captura;
+    :SearchService.setSearch(query);
+
+    :CatalogoComponent observa search.signal;
+    :productosFiltrados.signal recalcula (Signal compute);
+    :Filtra por nombre, descripción, categoría;
+
+    :Se actualiza vista reactivamente (sin HTTP);
+
+  repeat while (¿Sigue buscando?) is (Sí)
+
+  :Usuario ve producto en resultado;
+  :Hace click en "Agregar al carrito";
+
+  :Emite evento → CatalogoComponent;
+  :CarritoService.agregarProducto(producto);
+  :Signal productosSignal se actualiza;
+  :itemCount.signal se recalcula;
+
+  :Navbar muestra contador actualizado;
+  :Confirmación visual (toast/badge);
+
+stop
+@enduml
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+C.2 — FLUJO: CARRITO + SDK DINÁMICO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@startuml AnexoC2_FlujoCarrito
+title Flujo — Módulo Carrito con PayPal SDK Dinámico
+
+start
+  :Usuario hace click en ícono de carrito;
+  :Navega a /carrito;
+
+  :CarritoComponent.ngOnInit();
+  :Observa CarritoService.groupedItems;
+
+  if (¿Carrito vacío?) then (Sí)
+    :Muestra "Carrito vacío";
+    :Botón "Ir a catálogo";
+    stop
+  else (No — hay items)
+    :Itera sobre groupedItems;
+    :Renderiza cada item con cantidad;
+    :Muestra subtotal = SUM(precio × cantidad);
+    :Calcula impuestos = subtotal × 0.16;
+    :Muestra total = subtotal + impuestos;
+  endif
+
+  :Usuario scroll abajo;
+
+  :ngAfterViewInit() se ejecuta;
+  :loadPayPalSDK() → carga script dinámicamente;
+  note right
+    <script src="https://www.paypal.com/sdk/js?...">
+    Inyecta en <head> si no existe
+  end note
+
+  :setInterval(200ms) monitorea cambios en carrito;
+
+  if (¿window.paypal disponible?) then (Sí)
+    :paypal.Buttons({...}) crea botones;
+    :createOrder: POST /api/paypal/create-order;
+    :onApprove: captura el pago;
+    :Renderiza botón en #paypal-buttons-container;
+  else (No)
+    :Reintenta en siguiente ciclo;
+  endif
+
+  :Usuario ve botón "Pagar con PayPal";
+  :Hace click;
+
+  :createOrder callback:;
+  :POST /api/paypal/create-order;
+  :Body: {intent: "CAPTURE", purchase_units: [...] };
+
+  :PayPal retorna {id: orderID};
+  :Usuario aprobó en popup PayPal;
+
+  :onApprove callback:;
+  :POST /api/paypal/capture-order {orderID};
+
+  if (¿Captura OK?) then (Sí)
+    :PayPal retorna detalles de transacción;
+    :POST /api/paypal/guardar-pedido;
+    :Backend inserta en BD: pedidos + detalles_pedido;
+
+    :CarritoComponent.generarXMLRecibo();
+    :Crea <recibo> XML con estructura jerárquica;
+
+    :HistorialComprasService.guardarCompra(PurchaseOrder);
+    :Actualiza Signal compras[];
+
+    :CarritoService.limpiarCarrito();
+    :productosSignal = [];
+    :itemCount = 0;
+
+    :Muestra toast de éxito;
+    :Redirige a /historial (auto);
+
+  else (No/Error)
+    :onError callback;
+    :Muestra mensaje "Pago no capturado";
+    :Usuario puede reintentar;
+  endif
+
+stop
+@enduml
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+C.3 — FLUJO: CHECKOUT CON AUTO-GUARDADO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@startuml AnexoC3_FlujoCheckout
+title Flujo — Módulo Checkout
+
+start
+  :Usuario navega a /checkout;
+  :Puede ir desde Carrito o Navbar;
+
+  :CheckoutComponent.ngOnInit();
+  :Lee CarritoService.carrito (Signal);
+
+  if (¿Carrito vacío?) then (Sí)
+    :Muestra alerta "Carrito vacío";
+    :Botón "Ir a Catálogo" redirige;
+    stop
+  else (No)
+    :Muestra resumen detallado:;
+    :  • Listado de productos;
+    :  • Subtotal;
+    :  • IVA 16%;
+    :  • Total;
+  endif
+
+  :loadPayPalSDK() → inyecta JS si es necesario;
+
+  if (¿SDK listo?) then (Sí)
+    :paypal.Buttons() crea botón;
+    :Renderiza en #paypal-button-container;
+  else (No)
+    :Spinner de carga;
+  endif
+
+  :Usuario revisa todo;
+  :Hace click en "Pagar con PayPal";
+
+  :createOrder callback:;
+  :POST /api/paypal/create-order;
+  :Payload con purchase_units;
+
+  :onApprove callback con orderID:;
+  :POST /api/paypal/capture-order;
+
+  if (¿Captura exitosa?) then (Sí)
+    :HistorialComprasService.guardarCompra(orden);
+    :Genera folio único ORD-{timestamp};
+    :Calcula: subtotal, iva (16%), total;
+    :Registra detalles por producto (snapshot);
+
+    :CarritoService.limpiarCarrito();
+
+    :navigate(/historial);
+    :Muestra el pedido recién creado;
+
+  else (Error)
+    :Muestra snackbar con error;
+    :Botón "Reintentar";
+  endif
+
+stop
+@enduml
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+C.4 — FLUJO: HISTORIAL Y DETALLE DE COMPRA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@startuml AnexoC4_FlujoHistorial
+title Flujo — Módulo Historial de Compras
+
+start
+  :Usuario hace click en "Historial";
+  :Navbar / Footer → ruta /historial;
+
+  :HistorialComprasComponent.ngOnInit();
+  :Signal loading = true;
+
+  :HistorialComprasService.obtenerCompras();
+  :GET /api/pedidos/todos;
+
+  if (¿Backend responde?) then (Sí)
+    :Parsea respuesta → PurchaseOrder[];
+    :Signal compras = data;
+
+  else (Fallo / timeout)
+    :Ejecuta cargarComprasSimuladas();
+    :Carga datos de ejemplo;
+    :Signal compras = compras_simuladas[];
+  endif
+
+  :Signal loading = false;
+  :Renderiza tarjetas con glass-morphism;
+  :Cada tarjeta muestra:;
+  :  • Folio;
+  :  • Fecha;
+  :  • Total;
+  :  • Estado PayPal;
+
+  repeat
+    :Usuario observa listado;
+
+  repeat while (¿Quiere ver detalle?) is (Sí)
+
+  :Usuario hace click en "Ver detalle" de una compra;
+  :Navega a /historial/:id;
+
+  :DetalleCompraComponent.ngOnInit();
+  :Lee id desde ActivatedRoute;
+
+  :HistorialComprasService.obtenerCompraPorId(id);
+  :GET /api/pedidos/:id;
+  :GET /api/pedidos/:id/detalles;
+
+  :Signal compra = data;
+
+  :Renderiza:;
+  :  • Encabezado (folio, fecha, estado);
+  :  • Emisor (La Casa del Perfume);
+  :  • Tabla de productos con cantidad/precio;
+  :  • Subtotal, IVA, Total;
+  :  • Botón "Descargar Recibo" (XML);
+
+  :Usuario hace click en "Volver";
+  :navigate(/historial);
+
+stop
+@enduml
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+C.5 — FLUJO: INTEGRACIÓN PAYPAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+@startuml AnexoC5_FlujoPayPal
+title Flujo — Integración PayPal (Sistema Externo)
+
+start
+  :CarritoComponent / CheckoutComponent carga;
+
+  :Lee environment.ts:;
+  :paypal: {clientId: "xxxxx", baseUrl: "..."}
+
+  :loadPayPalSDK():;
+  :Crea <script> tag dinámicamente;
+  :src = "https://www.paypal.com/sdk/js?client-id=...";
+
+  if (Script ya existe?) then (Sí)
+    :Usa instancia existente;
+  else (No)
+    :Inyecta en document.head;
+    :Espera a que cargue;
+  endif
+
+  :Cuando window.paypal está disponible:;
+  :paypal.Buttons({...});
+
+  note right
+    const buttons = paypal.Buttons({
+      createOrder(data, actions) {
+        // POST /api/paypal/create-order
+      },
+      onApprove(data, actions) {
+        // POST /api/paypal/capture-order
+      },
+      onError(err) {
+        // manejar error
+      }
+    });
+    buttons.render("#paypal-buttons");
+  end note
+
+  :Renderiza botón PayPal en DOM;
+
+  :Usuario hace click en botón;
+
+  :createOrder callback se ejecuta:;
+  :Construye PayPalPayload;
+  :POST /api/paypal/create-order;
+  :Backend llama PayPal API /v2/checkout/orders;
+  :Retorna {id: orderID};
+
+  :Usuario redirigio a popup PayPal;
+  :Inicia sesión / aprueba pago;
+
+  :onApprove callback:;
+  :Recibe {orderID, payerID};
+  :POST /api/paypal/capture-order {orderID};
+  :Backend llama /v2/checkout/orders/{orderID}/capture;
+
+  if (¿Captura exitosa?) then (Sí)
+    :PayPal retorna detalles completos;
+    :POST /api/paypal/guardar-pedido;
+    :Backend:;
+    :  1. Inserta en tabla pedidos;
+    :  2. Inserta en tabla detalles_pedido;
+    :  3. Actualiza estado = "COMPLETED";
+
+    :Frontend:;
+    :  1. generarXMLRecibo();
+    :  2. HistorialComprasService.guardarCompra();
+    :  3. CarritoService.limpiarCarrito();
+
+    :Muestra confirmación;
+
+  else (Error)
+    :onError callback;
+    :Captura fallida;
+    :Muestra mensaje amigable;
+    :Usuario puede reintentar;
+  endif
+
+stop
+@enduml
+
+================================================================================
+                     ANEXO D — DIAGRAMA DE NAVEGACIÓN
+================================================================================
+
+@startuml AnexoD_DiagramaNavegacion
+title Diagrama de Navegación — La Casa del Perfume (State Diagram)
+
+skinparam state {
+  BackgroundColor #EEF4FF
+  BorderColor #3A6BC9
+  FontColor #1A1A2E
+  ArrowColor #3A6BC9
+}
+skinparam backgroundColor #FAFAFA
+
+[*] --> Home
+
+state "🏠 HOME\n(/home)" as Home {
+  note right
+    Página de inicio
+    Animación Starfield Canvas
+    CTAs al Catálogo
+  end note
+}
+
+state "📦 CATÁLOGO\n(/catalogo)" as Catalogo {
+  note right
+    Grid de productos
+    Búsqueda y filtros
+    "Agregar al carrito"
+  end note
+}
+
+state "🛒 CARRITO\n(/carrito)" as Carrito {
+  note right
+    Resumen de items
+    SDK PayPal dinámico
+    Botón "Ir a checkout"
+  end note
+}
+
+state "💳 CHECKOUT\n(/checkout)" as Checkout {
+  note right
+    Resumen final
+    PayPal buttons
+    Confirmación
+  end note
+}
+
+state "📋 HISTORIAL\n(/historial)" as Historial {
+  note right
+    Listado de compras
+    Tarjetas con glass-morphism
+    Link a detalle
+  end note
+}
+
+state "📄 DETALLE COMPRA\n(/historial/:id)" as Detalle {
+  note right
+    Encabezado + productos
+    Subtotal, IVA, Total
+    Descargar XML
+  end note
+}
+
+state "📞 CONTACTOS\n(/contactos)" as Contactos {
+  note right
+    Formulario de contacto
+  end note
+}
+
+state "🔒 PRIVACIDAD\n(/privacidad)" as Privacidad {
+  note right
+    Política de privacidad
+  end note
+}
+
+' Transiciones principales
+Home --> Catalogo : Navbar CTA / Logo
+Home --> Carrito : Ícono carrito (Navbar)
+Home --> Historial : Enlace Navbar / Footer
+Home --> Contactos : Enlace Navbar / Footer
+Home --> Privacidad : Enlace Footer
+
+Catalogo --> Carrito : "Agregar producto"\n+ Ir a carrito
+Catalogo --> Historial : Navbar
+Catalogo --> Contactos : Navbar
+
+Carrito --> Catalogo : "Seguir comprando"
+Carrito --> Checkout : "Ir a checkout"
+Carrito --> Historial : Navbar
+
+Checkout --> Historial : Pago exitoso\n(auto-redirect)
+Checkout --> Catalogo : Carrito vacío\n(auto-redirect)
+Checkout --> Carrito : "Volver al carrito"
+
+Historial --> Detalle : "Ver detalle"
+Historial --> Catalogo : Navbar
+Historial --> Home : Navbar / Logo
+
+Detalle --> Historial : "Volver"
+Detalle --> Catalogo : Navbar
+Detalle --> Home : Navbar / Logo
+
+Contactos --> Home : Navbar / Logo
+Privacidad --> Home : Navbar / Logo
+
+[*] -.-> Home : Entrada inicial
+
+@enduml
+
+================================================================================
+                    ANEXO F — DIAGRAMA DE CASOS DE USO
+================================================================================
+
+@startuml AnexoF_CasosDeUso
+title Diagrama de Casos de Uso — La Casa del Perfume
+
+left to right direction
+
+skinparam packageStyle rectangle
+skinparam backgroundColor #FAFAFA
+
+skinparam actor {
+  BackgroundColor #FFF8E1
+  BorderColor #C9A84C
+  FontColor #1A1A2E
+}
+
+skinparam usecase {
+  BackgroundColor #EEF4FF
+  BorderColor #3A6BC9
+  FontColor #1A1A2E
+}
+
+skinparam ArrowColor #3A6BC9
+
+' Actores
+actor "👤 Cliente\n(Usuario Web)" as Cliente
+actor "💳 PayPal\n(Sistema Externo)" as PayPal
+actor "⚙️ Backend API\n(Node.js/Express)" as Backend
+actor "🗄️ Base de Datos\n(MariaDB)" as Database
+
+' Sistema principal
+rectangle "La Casa del Perfume — E-Commerce Web" {
+
+  ' Catálogo y búsqueda
+  usecase "UC-01: Ver catálogo\nde productos" as UC01
+  usecase "UC-02: Buscar\nproducto por nombre" as UC02
+  usecase "UC-03: Filtrar\npor categoría" as UC03
+  usecase "UC-04: Ver detalles\nde producto" as UC04
+
+  ' Carrito
+  usecase "UC-05: Agregar\nproducto al carrito" as UC05
+  usecase "UC-06: Ver carrito\nde compras" as UC06
+  usecase "UC-07: Modificar\ncantidad en carrito" as UC07
+  usecase "UC-08: Eliminar\nproducto del carrito" as UC08
+
+  ' Pago
+  usecase "UC-09: Ir a checkout" as UC09
+  usecase "UC-10: Realizar pago\ncon PayPal" as UC10
+  usecase "UC-11: Generar\nrecibo XML" as UC11
+
+  ' Historial
+  usecase "UC-12: Ver historial\nde compras" as UC12
+  usecase "UC-13: Ver detalle\nde compra anterior" as UC13
+  usecase "UC-14: Descargar\nrecibo en XML" as UC14
+
+  ' Información
+  usecase "UC-15: Ver contacto" as UC15
+  usecase "UC-16: Ver privacidad" as UC16
+
+  ' Sistema backend
+  usecase "UC-20: Consultar\nproductos desde API" as UC20
+  usecase "UC-21: Crear orden\nPayPal" as UC21
+  usecase "UC-22: Capturar\npago PayPal" as UC22
+  usecase "UC-23: Guardar pedido\nen BD" as UC23
+  usecase "UC-24: Consultar\npedidos" as UC24
+}
+
+' Relaciones Cliente
+Cliente --> UC01
+Cliente --> UC02
+Cliente --> UC03
+Cliente --> UC04
+Cliente --> UC05
+Cliente --> UC06
+Cliente --> UC07
+Cliente --> UC08
+Cliente --> UC09
+Cliente --> UC10
+Cliente --> UC12
+Cliente --> UC13
+Cliente --> UC14
+Cliente --> UC15
+Cliente --> UC16
+
+' Include relationships
+UC01 ..> UC20 : <<include>>
+UC02 ..> UC01 : <<extend>>
+UC03 ..> UC01 : <<extend>>
+UC04 ..> UC01 : <<include>>
+
+UC05 ..> UC06 : (requiere)
+UC06 ..> UC09 : (precede a)
+UC09 ..> UC10 : <<include>>
+UC10 ..> UC21 : <<include>>
+UC10 ..> UC22 : <<include>>
+UC10 ..> UC23 : <<include>>
+UC10 ..> UC11 : <<include>>
+
+UC12 ..> UC24 : <<include>>
+UC13 ..> UC24 : <<include>>
+UC14 ..> UC13 : <<include>>
+
+' Relaciones sistemas externos
+PayPal --> UC21
+PayPal --> UC22
+
+Backend --> UC20
+Backend --> UC21
+Backend --> UC22
+Backend --> UC23
+Backend --> UC24
+
+Database --> UC23
+Database --> UC24
+
+note right of UC10
+  Caso de uso crítico:
+  Integración con PayPal
+  para captura de pago
+end note
+
+note right of UC11
+  XML generado en frontend
+  después de captura exitosa
+end note
+
+@enduml
+
+================================================================================
+                 ANEXO G — DIAGRAMA DE ESTRUCTURA DE RECIBO XML
+================================================================================
+
+@startuml AnexoG_EstructuraXML
+title Estructura del Recibo XML — La Casa del Perfume
+
+skinparam class {
+  BackgroundColor #EEF4FF
+  BorderColor #3A6BC9
+  FontColor #1A1A2E
+}
+
+skinparam ArrowColor #3A6BC9
+skinparam backgroundColor #FAFAFA
+
+' Nodos principales (representados como clases para mejor visualización)
+
+class "<recibo>" as ROOT {
+  xmlns = "LaCasaDelPerfume"
+  version = "1.0"
+  encoding = "UTF-8"
+  --
+  RAÍZ del documento XML
+  Generado por: CarritoComponent.generarXMLRecibo()
+  Momento: Después de captura exitosa de PayPal
+}
+
+class "<encabezado>" as ENC {
+  --
+  <folio> : string
+    ej: ORD-1777507322236
+  <fecha> : dateTime (ISO 8601)
+    ej: 2026-05-11T14:30:00-06:00
+  <estado> : string
+    COMPLETED | PENDING | FAILED
+  <paypal_id> : string
+    ID de orden desde PayPal
+}
+
+class "<emisor>" as EMI {
+  --
+  <nombre> : string = "La Casa del Perfume"
+  <sistema> : string = "Angular 21 + Node.js"
+  <moneda> : string = "MXN"
+  <rfc> : string (opcional)
+  <domicilio> : string (opcional)
+}
+
+class "<productos>" as PRODS {
+  Contenedor de items
+  Puede tener 1 a N elementos <producto>
+}
+
+class "<producto>" as PROD {
+  --
+  <producto_id> : number
+  <nombre> : string
+  <categoria> : string
+  <cantidad> : integer ≥ 1
+  <precio_unitario> : decimal
+    (precisión: 2 decimales)
+  <importe> : decimal
+    = cantidad × precio_unitario
+}
+
+class "<totales>" as TOT {
+  --
+  <subtotal> : decimal
+    SUM(importe de cada producto)
+  <iva tasa="16%"> : decimal
+    = subtotal × 0.16
+  <total> : decimal
+    = subtotal + iva
+}
+
+class "<pie>" as PIE {
+  --
+  <generado_por> : string = "CarritoComponent"
+  <timestamp> : datetime (ISO 8601)
+  <nota> : string
+    "Este es un recibo digital..."
+}
+
+' Jerarquía
+ROOT "1" *-- "1" ENC : encabezado
+ROOT "1" *-- "1" EMI : emisor
+ROOT "1" *-- "1" PRODS : productos
+ROOT "1" *-- "1" TOT : totales
+ROOT "1" *-- "1" PIE : pie
+
+PRODS "1" *-- "1..*" PROD : contiene\n1 o más
+
+note right of ROOT
+  EJEMPLO DE INSTANCIA:
+
+  <recibo xmlns="LaCasaDelPerfume"
+          version="1.0"
+          encoding="UTF-8">
+    <encabezado>
+      <folio>ORD-1777507322236</folio>
+      <fecha>2026-05-11T14:30:00</fecha>
+      <estado>COMPLETED</estado>
+      <paypal_id>xyz123...</paypal_id>
+    </encabezado>
+    <emisor>
+      <nombre>La Casa del Perfume</nombre>
+      ...
+    </emisor>
+    <productos>
+      <producto>
+        <nombre>Perfume X</nombre>
+        ...
+      </producto>
+    </productos>
+    <totales>
+      <subtotal>100.00</subtotal>
+      <iva tasa="16%">16.00</iva>
+      <total>116.00</total>
+    </totales>
+    <pie>
+      ...
+    </pie>
+  </recibo>
+end note
+
+note bottom of TOT
+  Cálculos automáticos:
+  • IVA siempre 16% (tasa fija)
+  • Subtotal = suma de importes
+  • Total = subtotal + iva
+  • Moneda: MXN (Pesos Mexicanos)
+end note
+
+note right of PIE
+  Metadatos del recibo:
+  • Cuándo se generó
+  • Quién lo generó (fronted)
+  • Puede descargarse como .xml
+  • Puede imprimirse o enviarse por email
+end note
+
+@enduml
+
+================================================================================
+                            FIN DEL DOCUMENTO
+================================================================================
+
+RESUMEN DE CAMBIOS v2.0 (Mayo 2026):
+
+✅ ANEXO A (Clases):
+   - Agregados PayPalService y métodos completos
+   - Mejoradas Signals en servicios (WritableSignal, computed)
+   - Relaciones más precisas entre componentes
+   - Constantes TAX_RATE y API_URL
+
+✅ ANEXO B (ER):
+   - Agregados campos timestamp (created_at, updated_at)
+   - Mejorados tipos de datos (ENUM para paypal_estado)
+   - Nota explicativa de diseño (snapshots en detalles_pedido)
+   - Relaciones 1:N claras
+
+✅ ANEXO C (Flujos):
+   - 5 sub-diagramas detallados (C1-C5)
+   - Flujo de Signals reactivos en C1
+   - Montaje dinámico de SDK PayPal en C2
+   - Gestión de errores y reintentos
+   - Notas técnicas inline
+
+✅ ANEXO D (Navegación):
+   - States con descripciones de propósito
+   - Transiciones claramente etiquetadas
+   - Auto-redirects (Checkout → Historial si pago OK)
+   - Diagrama de flujo visual intuitivo
+
+✅ ANEXO F (Casos de Uso):
+   - 24 casos de uso bien definidos
+   - Relaciones include/extend correctas
+   - Actores: Cliente, PayPal, Backend, Database
+   - Notas sobre casos críticos
+
+✅ ANEXO G (XML):
+   - Estructura jerárquica clara
+   - Ejemplo real de instancia XML
+   - Cálculos y valores por defecto
+   - Metadatos completos
+
+Todos los diagramas son compatibles con plantuml.com y editores locales.
+
+================================================================================

@@ -15,7 +15,8 @@ const conn = await mysql.createConnection({
   multipleStatements: true,
 });
 
-const sql = readFileSync(join(__dirname, '002_create_pedidos_y_link_tickets.sql'), 'utf8');
+const migrationFile = process.argv[2] || '004_add_detalle_json_to_pedidos.sql';
+const sql = readFileSync(join(__dirname, migrationFile), 'utf8');
 
 // Filtrar comentarios y ejecutar sentencia por sentencia
 const statements = sql
