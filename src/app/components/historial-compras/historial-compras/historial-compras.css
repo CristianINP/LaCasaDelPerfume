@@ -1,0 +1,459 @@
+/* ===== HISTORIAL DE COMPRAS - NEBULA THEME ===== */
+
+.historial-page {
+  min-height: calc(100vh - 72px);
+  background: transparent;
+  padding: 32px 24px 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.historial-page::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: 
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.8) 50%, transparent 50%),
+    radial-gradient(1px 1px at 30% 40%, rgba(255,255,255,0.6) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 50% 60%, rgba(255,255,255,0.9) 50%, transparent 50%),
+    radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,0.7) 50%, transparent 50%),
+    radial-gradient(1px 1px at 90% 80%, rgba(255,255,255,0.5) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 20% 70%, rgba(255,255,255,0.8) 50%, transparent 50%),
+    radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.6) 50%, transparent 50%),
+    radial-gradient(1px 1px at 60% 90%, rgba(255,255,255,0.7) 50%, transparent 50%),
+    radial-gradient(1px 1px at 80% 50%, rgba(255,255,255,0.5) 50%, transparent 50%);
+  animation: twinkle 4s ease-in-out infinite;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Side Blobs */
+.side-blob {
+  position: absolute;
+  top:0;
+  width: 450px;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(100px);
+}
+
+.side-blob-left {
+  left: 0;
+  background: radial-gradient(ellipse at 70% 30%, rgba(74, 158, 255, 0.5) 0%, rgba(74, 158, 255, 0.3) 30%, rgba(123, 79, 255, 0.25) 50%, transparent 70%);
+  animation: blobFloatLeft 20s ease-in-out infinite alternate;
+}
+
+.side-blob-right {
+  right: 0;
+  background: radial-gradient(ellipse at 30% 70%, rgba(123, 79, 255, 0.5) 0%, rgba(123, 79, 255, 0.3) 30%, rgba(74, 158, 255, 0.25) 50%, transparent 70%);
+  animation: blobFloatRight 25s ease-in-out infinite alternate;
+}
+
+.side-blob-left {
+  left: -200px;
+  background: radial-gradient(ellipse at 70% 30%, rgba(74, 158, 255, 0.5) 0%, rgba(74, 158, 255, 0.3) 30%, rgba(123, 79, 255, 0.25) 50%, transparent 70%);
+  animation: blobFloatLeft 20s ease-in-out infinite alternate;
+}
+
+.side-blob-right {
+  right: -200px;
+  background: radial-gradient(ellipse at 30% 70%, rgba(123, 79, 255, 0.5) 0%, rgba(123, 79, 255, 0.3) 30%, rgba(74, 158, 255, 0.25) 50%, transparent 70%);
+  animation: blobFloatRight 25s ease-in-out infinite alternate;
+}
+
+@keyframes blobFloatLeft {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(30px, -50px) scale(1.1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(10px, 30px) scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+@keyframes blobFloatRight {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(-30px, 50px) scale(1.15);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-10px, -30px) scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+.historial-container {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* Botón de regresar */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--silver);
+  font-weight: 400;
+  text-decoration: none;
+  padding: 8px 16px;
+  transition: all 0.3s ease;
+  margin-bottom: 32px;
+  position: relative;
+  border-radius: 99px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(8, 16, 28, 0.6);
+}
+
+.back-btn::before {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 16px;
+  width: 0;
+  height: 1px;
+  background: var(--electric);
+  transition: width 0.3s ease;
+}
+
+.back-btn:hover {
+  color: var(--electric);
+  transform: translateX(-4px);
+  border-color: var(--electric);
+  box-shadow: 0 0 15px rgba(74, 158, 255, 0.2);
+}
+
+.back-btn:hover::before {
+  width: calc(100% - 32px);
+}
+
+/* Título */
+.historial-title {
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: var(--star-white);
+  margin-bottom: 32px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-top: 16px;
+}
+
+.historial-title::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: var(--electric);
+  box-shadow: 0 0 6px var(--electric);
+}
+
+/* Pantalla de carga */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 20px;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(74, 158, 255, 0.2);
+  border-top-color: var(--electric);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+
+/* Pantalla de error */
+.error-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 20px;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+}
+
+.error-screen p {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* Historial vacío */
+.empty-historial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  text-align: center;
+}
+
+/* Lista de compras */
+.historial-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Tarjeta de compra */
+.historial-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  border: 1px solid var(--border-subtle);
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.historial-card:hover {
+  border-color: var(--electric);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(74, 158, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Encabezado de tarjeta */
+.historial-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.historial-folio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.folio-label {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.folio-value {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--star-white);
+}
+
+/* Estado */
+.estado {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.estado-completado {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.estado-pendiente {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.estado-fallido {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.estado-desconocido {
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--text-dim);
+  border: 1px solid var(--border-subtle);
+}
+
+/* Cuerpo de tarjeta */
+.historial-card-body {
+  margin-bottom: 16px;
+}
+
+.historial-fecha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--electric);
+  margin-bottom: 12px;
+}
+
+.historial-items-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.items-count {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.items-list-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.item-preview {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: var(--star-white);
+  background: rgba(74, 158, 255, 0.1);
+  border: 1px solid rgba(74, 158, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Pie de tarjeta */
+.historial-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.historial-totales {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.total-label {
+  font-size: 0.85rem;
+  color: var(--silver);
+}
+
+.total-amount {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--electric);
+  transition: color 0.3s ease;
+}
+
+.historial-card:hover .total-amount {
+  color: var(--aurora);
+}
+
+/* Botón ver detalle */
+.btn-detalle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, rgba(74, 158, 255, 0.15) 0%, rgba(123, 79, 255, 0.15) 100%);
+  border: 1px solid rgba(74, 158, 255, 0.4);
+  border-radius: var(--radius-md);
+  color: var(--star-white);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-detalle:hover {
+  background: linear-gradient(135deg, rgba(74, 158, 255, 0.3) 0%, rgba(123, 79, 255, 0.3) 100%);
+  border-color: var(--electric);
+  box-shadow: 0 8px 20px rgba(74, 158, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .historial-page {
+    padding: 24px 16px 40px;
+  }
+
+  .historial-title {
+    font-size: 1.5rem;
+  }
+
+  .historial-card {
+    padding: 16px;
+  }
+
+  .historial-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .historial-card-footer {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .historial-totales {
+    align-items: center;
+  }
+
+  .btn-detalle {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .historial-folio {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .items-list-preview {
+    gap: 4px;
+  }
+
+  .item-preview {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+  }
+}

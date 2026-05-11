@@ -213,7 +213,7 @@ h1, h2, h3, h4, h5, h6 {
   height: 56px;
   background: rgba(8, 16, 28, 0.9);
   color: var(--star-white);
-  border: 1px solid rgba(74, 158, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   cursor: pointer;
   display: flex;
@@ -233,18 +233,19 @@ h1, h2, h3, h4, h5, h6 {
 
 .floating-cart:hover {
   transform: translateY(-4px) scale(1.1);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(123, 79, 255, 0.5), 0 0 20px rgba(123, 79, 255, 0.3);
-  background: var(--aurora);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(79, 208, 255, 0.5), 0 0 20px rgba(79, 208, 255, 0.5);
+  background: var(--electric);
   color: var(--void);
 }
 
 .floating-cart .badge {
   position: absolute;
+  border-color: black;
   top: -3px;
   right: -3px;
   min-width: 20px;
   height: 20px;
-  background: var(--electric);
+  background: white;
   color: var(--void);
   font-size: 0.7rem;
   font-weight: 700;

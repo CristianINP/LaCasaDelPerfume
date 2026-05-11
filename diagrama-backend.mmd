@@ -1,0 +1,150 @@
+classDiagram
+direction TB
+
+%% ─── CONFIGURACIÓN ──────────────────────────────────────────
+
+class Database {
+    <<config>>
+    +string host
+    +number port
+    +string user
+    +string password
+    +string database
+    +Pool pool
+    +connectionLimit number
+}
+
+class PaypalConfig {
+    <<config>>
+    +string clientId
+    +string clientSecret
+    +string baseUrl
+}
+
+%% ─── SERVICIOS ─────────────────────────────────────────────
+
+class PaypalServiceBK {
+    <<service>>
+    +getAccessToken() Promise
+    +createPaypalOrder(orderData) Promise
+    +capturePaypalOrder(orderId) Promise
+}
+
+class UserServiceBK {
+    <<service>>
+    +createUser(userData) Promise
+    +getUserById(id) Promise
+    +getUserByEmail(email) Promise
+    +createOrUpdateUser(userData) Promise
+}
+
+class TicketServiceBK {
+    <<service>>
+    +createTicket(data) Promise
+    +getTicketById(id) Promise
+    +getTicketByOrderId(orderId) Promise
+    +getTicketsByUserId(userId) Promise
+    +getTicketWithDetails(id) Promise
+    +getUserPurchaseReport(userId) Promise
+}
+%% createTicket acepta pedido_id opcional e id_usuario nullable
+%% getTicketWithDetails: LEFT JOIN usuarios + JOIN detalles_pedido
+
+%% ─── CONTROLADORES ─────────────────────────────────────────
+
+class ProductosController {
+    <<controller>>
+    +getProductos(req, res) void
+}
+
+class PedidosController {
+    <<controller>>
+    +getPedidos(req, res) void
+    +getPedidoById(req, res) void
+    +getPedidoDetalles(req, res) void
+    +guardarPedido(req, res) void
+}
+
+class PaypalController {
+    <<controller>>
+    +createOrder(req, res) void
+    +captureOrder(req, res) void
+    +guardarPedido(req, res) void
+}
+
+class UsuarioController {
+    <<controller>>
+    +registerUser(req, res) void
+    +loginUser(req, res) void
+    +getUserById(req, res) void
+}
+
+class TicketController {
+    <<controller>>
+    +createTicket(req, res) void
+    +getTicket(req, res) void
+    +getTicketByOrder(req, res) void
+    +getTicketsByUser(req, res) void
+    +getTicketWithDetails(req, res) void
+    +getUserPurchaseReport(req, res) void
+}
+%% createTicket: id_usuario es opcional (permite compras sin sesión)
+
+%% ─── RUTAS ──────────────────────────────────────────────────
+
+class ProductosRoutes {
+    <<router>>
+    GET /api/productos
+}
+
+class PedidosRoutes {
+    <<router>>
+    GET /api/pedidos/todos
+    GET /api/pedidos/:id
+    GET /api/pedidos/:id/detalles
+    POST /api/pedidos/guardar-compra
+}
+
+class PaypalRoutes {
+    <<router>>
+    POST /api/paypal/create-order
+    POST /api/paypal/capture-order
+    POST /api/paypal/guardar-pedido
+}
+
+class UsuariosRoutes {
+    <<router>>
+    POST /api/usuarios
+    POST /api/usuarios/login
+    GET /api/usuarios/:id
+}
+
+class TicketsRoutes {
+    <<router>>
+    POST /api/tickets
+    GET /api/tickets/:id
+    GET /api/tickets/order/:orderId
+    GET /api/tickets/usuario/:userId
+    GET /api/tickets/detalle/:id
+    GET /api/tickets/reporte/:userId
+}
+
+%% ─── RELACIONES RUTAS → CONTROLADORES ───────────────────────
+ProductosRoutes --> ProductosController : llama
+PedidosRoutes --> PedidosController : llama
+PaypalRoutes --> PaypalController : llama
+UsuariosRoutes --> UsuarioController : llama
+TicketsRoutes --> TicketController : llama
+
+%% ─── RELACIONES CONTROLADORES → SERVICIOS ───────────────────
+PaypalController --> PaypalServiceBK : usa
+UsuarioController --> UserServiceBK : usa
+TicketController --> TicketServiceBK : usa
+
+%% ─── RELACIONES SERVICIOS / CONTROLADORES → CONFIG ──────────
+PaypalServiceBK --> PaypalConfig : usa
+UserServiceBK --> Database : consulta
+TicketServiceBK --> Database : consulta
+ProductosController --> Database : consulta
+PedidosController --> Database : consulta
+PaypalController --> Database : consulta
