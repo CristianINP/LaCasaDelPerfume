@@ -1,4 +1,4 @@
-import { createPaypalOrder, capturePaypalOrder } from '../service/paypal.service.js';
+import { createPaypalOrder, capturePaypalOrder } from '../services/paypal.service.js';
 import db from '../config/db.js';
 
 export async function createOrder(req, res) {
