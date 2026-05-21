@@ -30,14 +30,14 @@ let err = 0;
 for (const stmt of statements) {
   try {
     await conn.query(stmt);
-    console.log(`✅ OK: ${stmt.split('\n')[0].substring(0, 60)}...`);
+    console.log(`OK: ${stmt.split('\n')[0].substring(0, 60)}...`);
     ok++;
   } catch (e) {
     // Ignorar "Duplicate column" — ya existe
     if (e.code === 'ER_DUP_FIELDNAME' || e.message.includes('Duplicate column')) {
-      console.log(`⚠️  Ya existe (se omite): ${stmt.split('\n')[0].substring(0, 60)}`);
+      console.log(`Ya existe (se omite): ${stmt.split('\n')[0].substring(0, 60)}`);
     } else {
-      console.error(`❌ ERROR: ${e.message}`);
+      console.error(`ERROR: ${e.message}`);
       err++;
     }
   }

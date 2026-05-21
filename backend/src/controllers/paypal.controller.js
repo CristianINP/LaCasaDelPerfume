@@ -83,7 +83,7 @@ export async function guardarPedido(req, res) {
       [detallesValues]
     );
 
-    console.log(`✅ Pedido guardado: folio=${folio}, id=${pedidoId}`);
+    console.log(`Pedido guardado: folio=${folio}, id=${pedidoId}`);
     res.status(201).json({ success: true, pedidoId });
 
   } catch (error) {

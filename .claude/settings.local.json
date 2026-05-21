@@ -16,7 +16,10 @@
       "Bash(curl -s -X POST http://localhost:3000/api/tickets -H 'Content-Type: application/json' -d '{ *)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\alexc\\\\Documents\\\\La-casa-del-perfume\\\\src\\\\app\" -Recurse -File -Filter \"*.ts\")",
       "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(Head -50)"
+      "Bash(Head -50)",
+      "Bash(curl -s http://localhost:3000/api/user/profile -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJjYXJsb3NAdGVzdC5jb20iLCJpYXQiOjE3NzkzMDIyODAsImV4cCI6MTc3OTMwNTg4MH0.G4Cx-71G-MAV2lRiLc3uUnECwyOYS8aUSpBVWxoBqLM')",
+      "Bash(curl -s http://localhost:3000/api/user/history -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJjYXJsb3NAdGVzdC5jb20iLCJpYXQiOjE3NzkzMDIyODAsImV4cCI6MTc3OTMwNTg4MH0.G4Cx-71G-MAV2lRiLc3uUnECwyOYS8aUSpBVWxoBqLM')",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"carlos@test.com\",\"password\":\"MiPassword123\"}')"
     ]
   }
 }
