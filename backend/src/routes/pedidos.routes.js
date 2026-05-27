@@ -1,11 +1,10 @@
 import { Router } from 'express';
-import { getPedidos, getPedidoById, getPedidoDetalles, guardarPedido } from '../controllers/pedidos.controller.js';
+import { getHistorialUsuario, getPedidoById } from '../controllers/pedidos.controller.js';
+import { verifyToken } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-router.get('/pedidos/todos', getPedidos);
-router.get('/pedidos/:id', getPedidoById);
-router.get('/pedidos/:id/detalles', getPedidoDetalles);
-router.post('/pedidos/guardar-compra', guardarPedido);
+router.get('/pedidos/historial', verifyToken, getHistorialUsuario);
+router.get('/pedidos/:id', verifyToken, getPedidoById);
 
 export default router;

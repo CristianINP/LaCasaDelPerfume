@@ -4,8 +4,6 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { CarritoService } from '../../services/carrito/carrito/carrito';
 import { PaypalService } from '../../services/paypal/paypal';
-import { HistorialComprasService } from '../../services/historial-compras/historial-compras';
-import { TicketService } from '../../services/ticket/ticket';
 import { UserService } from '../../services/user/user';
 import { environment } from '../../../environments/environment';
 
@@ -29,10 +27,8 @@ export class Checkout implements AfterViewInit {
   paypalButtonContainer!: ElementRef<HTMLDivElement>;
 
   private carritoService   = inject(CarritoService);
-  private paypalService    = inject(PaypalService);
-  private historialService = inject(HistorialComprasService);
-  private ticketService    = inject(TicketService);
-  private userService      = inject(UserService);
+  private paypalService = inject(PaypalService);
+  private userService   = inject(UserService);
 
   // Exponer del servicio para que el template pueda llamarlos como funciones
   carrito   = this.carritoService.carrito;
@@ -115,30 +111,19 @@ export class Checkout implements AfterViewInit {
             importe:         item.product.price * item.quantity,
           }));
 
-          const pedidoResp = await this.historialService.guardarCompra({
-            folio,
-            paypalOrderId: data.orderID,
-            paypalEstado:  capture.status || 'COMPLETED',
-            subtotal:      this.subtotalSnapshot,
-            iva:           this.ivaSnapshot,
-            total:         this.totalSnapshot,
-            items:         itemsParaHistorial,
-          });
-
-          // Guardar ticket siempre (con o sin usuario logueado)
           const usuario = this.userService.getUsuarioActual();
-          firstValueFrom(
-            this.ticketService.generarTicket({
-              orderId:     data.orderID,
-              id_usuario:  usuario?.id_usuario ?? null,
-              pedido_id:   pedidoResp?.pedidoId ?? null,
-              metodo_pago: 'PayPal',
-              subtotal:    this.subtotalSnapshot,
-              impuestos:   this.ivaSnapshot,
-              total:       this.totalSnapshot,
-              estado:      'APROBADO',
+          await firstValueFrom(
+            this.paypalService.guardarPedido({
+              folio,
+              paypalOrderId: data.orderID,
+              paypalEstado:  (capture as any).status || 'COMPLETED',
+              subtotal:      this.subtotalSnapshot,
+              iva:           this.ivaSnapshot,
+              total:         this.totalSnapshot,
+              usuario_id:    usuario?.id_usuario ?? null,
+              items:         itemsParaHistorial,
             })
-          ).catch(e => console.error('Error guardando ticket (no crítico):', e));
+          ).catch((e: any) => console.error('Error guardando pedido:', e));
 
           this.ticketGenerado.set({
             id_ticket:    folio,

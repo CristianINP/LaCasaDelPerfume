@@ -225,6 +225,30 @@
   text-align: center;
 }
 
+.btn-explorar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 12px 28px;
+  border: 1px solid var(--electric);
+  border-radius: 8px;
+  color: var(--electric);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-decoration: none;
+  background: rgba(74, 158, 255, 0.07);
+  transition: background 0.25s, box-shadow 0.25s, transform 0.2s;
+}
+
+.btn-explorar:hover {
+  background: rgba(74, 158, 255, 0.15);
+  box-shadow: 0 0 20px rgba(74, 158, 255, 0.25);
+  transform: translateY(-1px);
+  color: var(--star-white);
+}
+
 /* Lista de compras */
 .historial-list {
   display: flex;

@@ -115,8 +115,7 @@ export class HistorialCompras implements OnInit, AfterViewInit, OnDestroy {
   }
 
   cargarCompras(): void {
-    // Cargar desde la base de datos
-    this.servicio.cargarComprasSimuladas();
+    this.servicio.obtenerCompras();
   }
 
   formatearMoneda(valor: number): string {

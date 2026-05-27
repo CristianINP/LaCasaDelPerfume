@@ -1,28 +1,26 @@
-import { Component, inject } from '@angular/core';
-import { NgIf } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Component, inject, AfterViewInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { UserService, User } from '../../services/user/user';
+import { UserService } from '../../services/user/user';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule, NgIf],
+  imports: [FormsModule],
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class LoginComponent {
+export class LoginComponent implements AfterViewInit {
   private userService = inject(UserService);
-
-  get usuario(): User | null {
-    return this.userService.usuario();
-  }
+  private router = inject(Router);
 
   email = '';
+  password = '';
   nombre = '';
   apellido = '';
   telefono = '';
-  
+
   modoRegistro = false;
   mensaje = '';
   cargando = false;
@@ -33,8 +31,8 @@ export class LoginComponent {
   }
 
   async submit(): Promise<void> {
-    if (!this.email) {
-      this.mensaje = 'Por favor ingrese su email';
+    if (!this.email || !this.password) {
+      this.mensaje = 'Email y contraseña son obligatorios';
       return;
     }
 
@@ -42,50 +40,99 @@ export class LoginComponent {
     this.mensaje = '';
 
     try {
-      let response: any;
-
       if (this.modoRegistro) {
         if (!this.nombre || !this.apellido) {
-          this.mensaje = 'Por favor complete todos los campos';
+          this.mensaje = 'Nombre y apellido son obligatorios';
           this.cargando = false;
           return;
         }
-        response = await firstValueFrom(
+        await firstValueFrom(
           this.userService.registrarUsuario({
-            email: this.email,
             nombre: this.nombre,
             apellido: this.apellido,
+            email: this.email,
+            password: this.password,
             telefono: this.telefono
           })
         );
-      } else {
-        response = await firstValueFrom(
-          this.userService.loginUsuario({ email: this.email })
-        );
       }
 
-      this.userService.setUsuario(response.usuario);
-      this.mensaje = response.message;
+      const resp = await firstValueFrom(
+        this.userService.loginUsuario({ email: this.email, password: this.password })
+      );
+
+      this.userService.setUsuario(
+        { id_usuario: resp.usuario.id, nombre: resp.usuario.nombre, email: resp.usuario.email },
+        resp.token
+      );
+
+      this.router.navigate(['/']);
     } catch (error: any) {
-      console.error('Error:', error);
-      this.mensaje = error.error?.error || 'Error al procesar la solicitud';
+      this.mensaje = error.error?.mensaje || 'Error al procesar la solicitud';
     } finally {
       this.cargando = false;
     }
   }
 
+  esError(): boolean {
+    const m = this.mensaje.toLowerCase();
+    return m.includes('error') || m.includes('incorrecta') || m.includes('inválido') || m.includes('obligatorio') || m.includes('existe');
+  }
+
   limpiar(): void {
     this.email = '';
+    this.password = '';
     this.nombre = '';
     this.apellido = '';
     this.telefono = '';
     this.mensaje = '';
   }
 
-  cerrarSesion(): void {
-    this.userService.clearUsuario();
-    this.mensaje = 'Sesión cerrada exitosamente';
-    this.limpiar();
-    this.modoRegistro = false;
+  ngAfterViewInit(): void {
+    if (typeof window !== 'undefined') {
+      setTimeout(() => this.initStarfield(), 50);
+    }
+  }
+
+  private initStarfield(): void {
+    const sf = document.getElementById('starfield');
+    if (!sf || sf.children.length > 0) return;
+    const rand = (a: number, b: number) => Math.random() * (b - a) + a;
+
+    for (let i = 0; i < 280; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      const size = rand(0.5, 2.5);
+      const baseOp = rand(0.3, 0.9);
+      s.style.cssText = `left:${rand(0,100)}%;top:${rand(0,100)}%;width:${size}px;height:${size}px;opacity:${baseOp};--base-op:${baseOp};`;
+      if (Math.random() < 0.4) {
+        const dur = rand(2, 6);
+        s.classList.add(Math.random() < 0.5 ? 'twinkle' : 'twinkle-fast');
+        s.style.setProperty('--dur', dur + 's');
+        s.style.setProperty('--delay', rand(0, 5) + 's');
+      }
+      sf.appendChild(s);
+    }
+
+    for (let i = 0; i < 18; i++) {
+      const s = document.createElement('div');
+      s.className = 'star twinkle';
+      const size = rand(2, 4);
+      const color = Math.random() < 0.5 ? '#b0c8ff' : '#c8e0ff';
+      s.style.cssText = `left:${rand(0,100)}%;top:${rand(0,100)}%;width:${size}px;height:${size}px;background:${color};box-shadow:0 0 ${size*3}px ${color};--base-op:0.7;--dur:${rand(3,7)}s;--delay:${rand(0,4)}s;`;
+      sf.appendChild(s);
+    }
+
+    const launch = () => {
+      const ss = document.createElement('div');
+      ss.className = 'shooting-star';
+      const dur = rand(1.8, 3.2);
+      ss.style.cssText = `top:${rand(5,55)}%;left:${rand(-10,60)}%;width:${rand(120,280)}px;transform:rotate(${rand(-20,-5)}deg);--dist:${rand(250,500)}px;--sdur:${dur}s;animation-delay:${rand(0,0.5)}s;`;
+      sf.appendChild(ss);
+      setTimeout(() => ss.remove(), (dur + 1) * 1000);
+    };
+    const schedule = () => { launch(); setTimeout(schedule, rand(3500, 9000)); };
+    setTimeout(schedule, 1500);
+    setTimeout(schedule, 5000);
   }
 }

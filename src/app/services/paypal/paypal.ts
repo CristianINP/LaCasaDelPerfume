@@ -9,6 +9,7 @@ export interface PedidoPayload {
   subtotal: number;
   iva: number;
   total: number;
+  usuario_id: number | null;
   items: {
     producto_id: number;
     nombre_producto: string;

@@ -1,7 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CarritoService } from '../../services/carrito/carrito/carrito';
 import { SearchService } from '../../services/search/search';
+import { UserService } from '../../services/user/user';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -14,12 +15,18 @@ import { Router } from '@angular/router';
 })
 export class Navbar {
   searchQuery = signal('');
+  userService = inject(UserService);
 
   constructor(
     public carritoService: CarritoService,
     private searchService: SearchService,
     private router: Router
   ) {}
+
+  cerrarSesion(): void {
+    this.userService.clearUsuario();
+    this.router.navigate(['/login']);
+  }
 
   onSearch() {
     this.searchService.setSearch(this.searchQuery());
