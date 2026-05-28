@@ -31,7 +31,7 @@ export class HistorialComprasService {
           subtotal: Number(p.subtotal) || 0,
           iva: Number(p.iva) || 0,
           total: Number(p.total) || 0,
-          items: [],
+          items: Array.isArray(p.items) ? p.items : [],
         }));
         this.comprasSignal.set(compras);
       }

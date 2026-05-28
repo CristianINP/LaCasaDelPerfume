@@ -114,7 +114,6 @@ export class DetalleCompra implements OnInit, AfterViewInit {
     window.scrollTo({ top: 0, behavior: 'instant' });
     
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    console.log('DetalleCompra - ID de ruta:', id);
     if (id) {
       this.servicio.error.set(null);
       this.cargarCompra(id);
@@ -124,12 +123,10 @@ export class DetalleCompra implements OnInit, AfterViewInit {
   }
 
   cargarCompra(id: number): void {
-    console.log('Cargando compra con ID:', id);
     this.servicio.error.set(null);
     this.compra = null;
     
     this.servicio.obtenerCompraPorId(id).then(compra => {
-      console.log('Compra cargada:', compra);
       this.compra = compra;
       if (!compra) {
         this.servicio.error.set('Compra no encontrada');

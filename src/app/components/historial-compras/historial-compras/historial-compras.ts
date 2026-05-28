@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HistorialComprasService } from '../../../services/historial-compras/historial-compras';
 import { PurchaseOrder } from '../../../models/orden/orden';
@@ -12,7 +12,7 @@ import { Footer } from '../../footer/footer';
   templateUrl: './historial-compras.html',
   styleUrl: './historial-compras.css',
 })
-export class HistorialCompras implements OnInit, AfterViewInit, OnDestroy {
+export class HistorialCompras implements OnInit, AfterViewInit {
   private servicio = inject(HistorialComprasService);
   
   compras = this.servicio.compras;
@@ -28,8 +28,6 @@ export class HistorialCompras implements OnInit, AfterViewInit, OnDestroy {
       setTimeout(() => this.initStarfield(), 100);
     }
   }
-
-  ngOnDestroy(): void {}
 
   private initStarfield() {
     const existingStars = document.querySelectorAll('.star');

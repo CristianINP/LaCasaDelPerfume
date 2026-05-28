@@ -1,0 +1,192 @@
+- generic [ref=e23]:
+  - navigation [ref=e25]:
+    - generic [ref=e27]:
+      - generic [ref=e28]: La Casa del Perfume
+      - generic [ref=e29]:
+        - link "Privacidad" [ref=e30] [cursor=pointer]:
+          - /url: /privacidad
+        - generic [ref=e31]: "|"
+        - link "Contacto" [ref=e32] [cursor=pointer]:
+          - /url: /contactos
+    - generic [ref=e33]:
+      - link "TIENDA" [ref=e34] [cursor=pointer]:
+        - /url: /
+        - img [ref=e35]
+        - generic [ref=e38]: TIENDA
+      - generic [ref=e40]:
+        - img
+        - textbox "Buscar productos..." [ref=e41]
+      - link [ref=e42] [cursor=pointer]:
+        - /url: /carrito
+        - img [ref=e43]
+      - generic [ref=e47]:
+        - generic [ref=e48]: CRISTIAN ISRAEL
+        - button "Cerrar sesión" [ref=e49] [cursor=pointer]:
+          - img [ref=e50]
+  - main [ref=e53]:
+    - generic [ref=e54]:
+      - generic [ref=e56]:
+        - heading "Administración de Inventario" [level=1] [ref=e57]:
+          - img [ref=e58]
+          - text: Administración de Inventario
+        - generic [ref=e61]:
+          - generic [ref=e62] [cursor=pointer]:
+            - checkbox "Mostrar inactivos" [ref=e63]
+            - text: Mostrar inactivos
+          - button "Nuevo Producto" [active] [ref=e64] [cursor=pointer]:
+            - img [ref=e65]
+            - text: Nuevo Producto
+      - generic [ref=e204]:
+        - heading "Nuevo Producto" [level=2] [ref=e205]
+        - generic [ref=e206]:
+          - generic [ref=e207]:
+            - generic [ref=e208]: Nombre *
+            - textbox "Nombre del producto" [ref=e209]
+          - generic [ref=e210]:
+            - generic [ref=e211]: Precio *
+            - spinbutton [ref=e212]: "0"
+          - generic [ref=e213]:
+            - generic [ref=e214]: Categoría
+            - textbox "Ej. Perfume, Colonia..." [ref=e215]
+          - generic [ref=e216]:
+            - generic [ref=e217]: URL de imagen
+            - textbox "https://..." [ref=e218]
+          - generic [ref=e219]:
+            - generic [ref=e220]: Descripción
+            - textbox "Descripción del producto..." [ref=e221]
+          - generic [ref=e223] [cursor=pointer]:
+            - checkbox "En stock" [checked] [ref=e224]
+            - text: En stock
+        - generic [ref=e225]:
+          - button "Crear Producto" [ref=e226] [cursor=pointer]
+          - button "Cancelar" [ref=e227] [cursor=pointer]
+      - table [ref=e67]:
+        - rowgroup [ref=e68]:
+          - row "ID Nombre Categoría Precio Stock Estado Acciones" [ref=e69]:
+            - columnheader "ID" [ref=e70]
+            - columnheader "Nombre" [ref=e71]
+            - columnheader "Categoría" [ref=e72]
+            - columnheader "Precio" [ref=e73]
+            - columnheader "Stock" [ref=e74]
+            - columnheader "Estado" [ref=e75]
+            - columnheader "Acciones" [ref=e76]
+        - rowgroup [ref=e77]:
+          - row "1 Chanel N°5 Chanel N°5 Perfume femenino $2,899.99 Disponible Activo Editar Desactivar" [ref=e78]:
+            - cell "1" [ref=e79]
+            - cell "Chanel N°5 Chanel N°5" [ref=e80]:
+              - generic [ref=e81]:
+                - img "Chanel N°5" [ref=e82]
+                - generic [ref=e83]: Chanel N°5
+            - cell "Perfume femenino" [ref=e84]:
+              - generic [ref=e85]: Perfume femenino
+            - cell "$2,899.99" [ref=e86]
+            - cell "Disponible" [ref=e87]:
+              - generic [ref=e88]: Disponible
+            - cell "Activo" [ref=e89]:
+              - generic [ref=e90]: Activo
+            - cell "Editar Desactivar" [ref=e91]:
+              - button "Editar" [ref=e92] [cursor=pointer]:
+                - img [ref=e93]
+                - text: Editar
+              - button "Desactivar" [ref=e96] [cursor=pointer]:
+                - img [ref=e97]
+                - text: Desactivar
+          - row "2 Dior Sauvage Dior Sauvage Perfume masculino $2,599.50 Disponible Activo Editar Desactivar" [ref=e99]:
+            - cell "2" [ref=e100]
+            - cell "Dior Sauvage Dior Sauvage" [ref=e101]:
+              - generic [ref=e102]:
+                - img "Dior Sauvage" [ref=e103]
+                - generic [ref=e104]: Dior Sauvage
+            - cell "Perfume masculino" [ref=e105]:
+              - generic [ref=e106]: Perfume masculino
+            - cell "$2,599.50" [ref=e107]
+            - cell "Disponible" [ref=e108]:
+              - generic [ref=e109]: Disponible
+            - cell "Activo" [ref=e110]:
+              - generic [ref=e111]: Activo
+            - cell "Editar Desactivar" [ref=e112]:
+              - button "Editar" [ref=e113] [cursor=pointer]:
+                - img [ref=e114]
+                - text: Editar
+              - button "Desactivar" [ref=e117] [cursor=pointer]:
+                - img [ref=e118]
+                - text: Desactivar
+          - row "3 Carolina Herrera 212 Carolina Herrera 212 Perfume unisex $1,999.00 Disponible Activo Editar Desactivar" [ref=e120]:
+            - cell "3" [ref=e121]
+            - cell "Carolina Herrera 212 Carolina Herrera 212" [ref=e122]:
+              - generic [ref=e123]:
+                - img "Carolina Herrera 212" [ref=e124]
+                - generic [ref=e125]: Carolina Herrera 212
+            - cell "Perfume unisex" [ref=e126]:
+              - generic [ref=e127]: Perfume unisex
+            - cell "$1,999.00" [ref=e128]
+            - cell "Disponible" [ref=e129]:
+              - generic [ref=e130]: Disponible
+            - cell "Activo" [ref=e131]:
+              - generic [ref=e132]: Activo
+            - cell "Editar Desactivar" [ref=e133]:
+              - button "Editar" [ref=e134] [cursor=pointer]:
+                - img [ref=e135]
+                - text: Editar
+              - button "Desactivar" [ref=e138] [cursor=pointer]:
+                - img [ref=e139]
+                - text: Desactivar
+          - row "4 Versace Eros Versace Eros Perfume masculino $2,399.00 Disponible Activo Editar Desactivar" [ref=e141]:
+            - cell "4" [ref=e142]
+            - cell "Versace Eros Versace Eros" [ref=e143]:
+              - generic [ref=e144]:
+                - img "Versace Eros" [ref=e145]
+                - generic [ref=e146]: Versace Eros
+            - cell "Perfume masculino" [ref=e147]:
+              - generic [ref=e148]: Perfume masculino
+            - cell "$2,399.00" [ref=e149]
+            - cell "Disponible" [ref=e150]:
+              - generic [ref=e151]: Disponible
+            - cell "Activo" [ref=e152]:
+              - generic [ref=e153]: Activo
+            - cell "Editar Desactivar" [ref=e154]:
+              - button "Editar" [ref=e155] [cursor=pointer]:
+                - img [ref=e156]
+                - text: Editar
+              - button "Desactivar" [ref=e159] [cursor=pointer]:
+                - img [ref=e160]
+                - text: Desactivar
+          - row "5 Good Girl Good Girl Perfume femenino $2,199.00 Disponible Activo Editar Desactivar" [ref=e162]:
+            - cell "5" [ref=e163]
+            - cell "Good Girl Good Girl" [ref=e164]:
+              - generic [ref=e165]:
+                - img "Good Girl" [ref=e166]
+                - generic [ref=e167]: Good Girl
+            - cell "Perfume femenino" [ref=e168]:
+              - generic [ref=e169]: Perfume femenino
+            - cell "$2,199.00" [ref=e170]
+            - cell "Disponible" [ref=e171]:
+              - generic [ref=e172]: Disponible
+            - cell "Activo" [ref=e173]:
+              - generic [ref=e174]: Activo
+            - cell "Editar Desactivar" [ref=e175]:
+              - button "Editar" [ref=e176] [cursor=pointer]:
+                - img [ref=e177]
+                - text: Editar
+              - button "Desactivar" [ref=e180] [cursor=pointer]:
+                - img [ref=e181]
+                - text: Desactivar
+          - row "6 Test Perfume EDITADO Premium $149.99 Disponible Activo Editar Desactivar" [ref=e183]:
+            - cell "6" [ref=e184]
+            - cell "Test Perfume EDITADO" [ref=e185]:
+              - generic [ref=e187]: Test Perfume EDITADO
+            - cell "Premium" [ref=e188]:
+              - generic [ref=e189]: Premium
+            - cell "$149.99" [ref=e190]
+            - cell "Disponible" [ref=e191]:
+              - generic [ref=e192]: Disponible
+            - cell "Activo" [ref=e193]:
+              - generic [ref=e194]: Activo
+            - cell "Editar Desactivar" [ref=e195]:
+              - button "Editar" [ref=e196] [cursor=pointer]:
+                - img [ref=e197]
+                - text: Editar
+              - button "Desactivar" [ref=e200] [cursor=pointer]:
+                - img [ref=e201]
+                - text: Desactivar
+      - paragraph [ref=e203]: 6 productos mostrados

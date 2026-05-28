@@ -6,12 +6,20 @@ export const getHistorialUsuario = async (req, res) => {
     const userId = req.user.id;
 
     const [rows] = await db.promise().query(
-      `SELECT id, folio, paypal_orden_id, paypal_estado, subtotal, iva, total, fecha, archivo_historial
+      `SELECT id, folio, paypal_orden_id, paypal_estado, subtotal, iva, total, fecha, archivo_historial, detalle_json
        FROM pedidos WHERE usuario_id = ? ORDER BY fecha DESC`,
       [userId]
     );
 
-    res.json({ success: true, data: rows });
+    const data = rows.map(p => {
+      let items = [];
+      if (p.detalle_json) {
+        try { items = JSON.parse(p.detalle_json); } catch { items = []; }
+      }
+      return { ...p, items, detalle_json: undefined };
+    });
+
+    res.json({ success: true, data });
   } catch (error) {
     console.error('Error al obtener historial:', error.message);
     res.status(500).json({ success: false, message: 'Error al obtener historial' });

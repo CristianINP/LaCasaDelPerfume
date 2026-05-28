@@ -1,0 +1,9 @@
+[     140ms] [LOG] Angular is running in development mode. @ http://localhost:4200/@fs/C:/Users/crist/ProAngular/.angular/cache/21.1.4/ProAngular/vite/deps/chunk-O425MODH.js?v=15e58e95:13956
+[     157ms] [LOG] Angular hydrated 2 component(s) and 42 node(s), 0 component(s) were skipped. Learn more at https://v21.angular.dev/guide/hydration. @ http://localhost:4200/@fs/C:/Users/crist/ProAngular/.angular/cache/21.1.4/ProAngular/vite/deps/chunk-O425MODH.js?v=15e58e95:13956
+[   24295ms] [ERROR] Failed to load resource: the server responded with a status of 403 (Forbidden) @ http://localhost:3000/api/productos:0
+[   24298ms] [ERROR] Error al obtener productos: HttpErrorResponse @ http://localhost:4200/main.js:700
+[   24299ms] [LOG] Productos cargados: [] @ http://localhost:4200/main.js:1015
+[  175384ms] [LOG] Angular is running in development mode. @ http://localhost:4200/@fs/C:/Users/crist/ProAngular/.angular/cache/21.1.4/ProAngular/vite/deps/chunk-O425MODH.js?v=15e58e95:13956
+[  175407ms] [LOG] Angular hydrated 2 component(s) and 42 node(s), 0 component(s) were skipped. Learn more at https://v21.angular.dev/guide/hydration. @ http://localhost:4200/@fs/C:/Users/crist/ProAngular/.angular/cache/21.1.4/ProAngular/vite/deps/chunk-O425MODH.js?v=15e58e95:13956
+[  178012ms] [LOG] Angular is running in development mode. @ http://localhost:4200/@fs/C:/Users/crist/ProAngular/.angular/cache/21.1.4/ProAngular/vite/deps/chunk-O425MODH.js?v=15e58e95:13956
+[  178026ms] [LOG] Angular hydrated 2 component(s) and 42 node(s), 0 component(s) were skipped. Learn more at https://v21.angular.dev/guide/hydration. @ http://localhost:4200/@fs/C:/Users/crist/ProAngular/.angular/cache/21.1.4/ProAngular/vite/deps/chunk-O425MODH.js?v=15e58e95:13956

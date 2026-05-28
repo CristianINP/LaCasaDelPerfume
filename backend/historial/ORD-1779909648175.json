@@ -1,0 +1,28 @@
+{
+  "folio": "ORD-1779909648175",
+  "paypalOrderId": "5PV49317414039102",
+  "paypalEstado": "COMPLETED",
+  "fecha": "2026-05-27T19:20:48.180Z",
+  "usuario_id": 2,
+  "subtotal": 4598.5,
+  "iva": 735.76,
+  "total": 5334.259999999999,
+  "items": [
+    {
+      "producto_id": 3,
+      "nombre_producto": "Carolina Herrera 212",
+      "categoria": "Perfume unisex",
+      "cantidad": 1,
+      "precio_unitario": 1999,
+      "importe": 1999
+    },
+    {
+      "producto_id": 2,
+      "nombre_producto": "Dior Sauvage",
+      "categoria": "Perfume masculino",
+      "cantidad": 1,
+      "precio_unitario": 2599.5,
+      "importe": 2599.5
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import db from '../config/db.js';
 
 export const getProductos = (req, res) => {
-  const query = 'SELECT * FROM productos';
+  const query = 'SELECT * FROM productos WHERE activo = 1';
   db.query(query, (error, resultados) => {
     if (error) {
       console.error('Error fetching productos:', error);

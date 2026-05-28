@@ -1,13 +1,13 @@
-import { Component, inject, AfterViewInit } from '@angular/core';
+import { Component, inject, AfterViewInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { UserService } from '../../services/user/user';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
@@ -22,8 +22,9 @@ export class LoginComponent implements AfterViewInit {
   telefono = '';
 
   modoRegistro = false;
-  mensaje = '';
-  cargando = false;
+  mensaje = signal('');
+  cargando = signal(false);
+  mostrarPassword = signal(false);
 
   alternarModo(): void {
     this.modoRegistro = !this.modoRegistro;
@@ -32,18 +33,18 @@ export class LoginComponent implements AfterViewInit {
 
   async submit(): Promise<void> {
     if (!this.email || !this.password) {
-      this.mensaje = 'Email y contraseña son obligatorios';
+      this.mensaje.set('Email y contraseña son obligatorios');
       return;
     }
 
-    this.cargando = true;
-    this.mensaje = '';
+    this.cargando.set(true);
+    this.mensaje.set('');
 
     try {
       if (this.modoRegistro) {
         if (!this.nombre || !this.apellido) {
-          this.mensaje = 'Nombre y apellido son obligatorios';
-          this.cargando = false;
+          this.mensaje.set('Nombre y apellido son obligatorios');
+          this.cargando.set(false);
           return;
         }
         await firstValueFrom(
@@ -62,20 +63,20 @@ export class LoginComponent implements AfterViewInit {
       );
 
       this.userService.setUsuario(
-        { id_usuario: resp.usuario.id, nombre: resp.usuario.nombre, email: resp.usuario.email },
+        { id_usuario: resp.usuario.id, nombre: resp.usuario.nombre, email: resp.usuario.email, rol: resp.usuario.rol },
         resp.token
       );
 
-      this.router.navigate(['/']);
+      this.router.navigate([resp.usuario.rol === 'admin' ? '/admin/inventario' : '/']);
     } catch (error: any) {
-      this.mensaje = error.error?.mensaje || 'Error al procesar la solicitud';
+      this.mensaje.set(error.error?.mensaje || 'Error al procesar la solicitud');
     } finally {
-      this.cargando = false;
+      this.cargando.set(false);
     }
   }
 
   esError(): boolean {
-    const m = this.mensaje.toLowerCase();
+    const m = this.mensaje().toLowerCase();
     return m.includes('error') || m.includes('incorrecta') || m.includes('inválido') || m.includes('obligatorio') || m.includes('existe');
   }
 
@@ -85,7 +86,7 @@ export class LoginComponent implements AfterViewInit {
     this.nombre = '';
     this.apellido = '';
     this.telefono = '';
-    this.mensaje = '';
+    this.mensaje.set('');
   }
 
   ngAfterViewInit(): void {

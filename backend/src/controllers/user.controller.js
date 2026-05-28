@@ -1,4 +1,5 @@
 import db from '../config/db.js';
+import bcrypt from 'bcrypt';
 
 // Obtener perfil del usuario autenticado
 export const getProfile = async (req, res) => {
@@ -18,6 +19,36 @@ export const getProfile = async (req, res) => {
   } catch (error) {
     console.error('Error en getProfile:', error.message);
     res.status(500).json({ mensaje: 'Error al obtener perfil' });
+  }
+};
+
+// Actualizar perfil del usuario autenticado
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { nombre, apellido, telefono, password } = req.body;
+
+    if (!nombre) {
+      return res.status(400).json({ mensaje: 'El nombre es obligatorio' });
+    }
+
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await db.promise().query(
+        'UPDATE usuarios SET nombre=?, apellido=?, telefono=?, password=? WHERE id_usuario=?',
+        [nombre, apellido || null, telefono || null, hashedPassword, userId]
+      );
+    } else {
+      await db.promise().query(
+        'UPDATE usuarios SET nombre=?, apellido=?, telefono=? WHERE id_usuario=?',
+        [nombre, apellido || null, telefono || null, userId]
+      );
+    }
+
+    res.json({ success: true, mensaje: 'Perfil actualizado correctamente' });
+  } catch (error) {
+    console.error('Error en updateProfile:', error.message);
+    res.status(500).json({ mensaje: 'Error al actualizar perfil' });
   }
 };
 

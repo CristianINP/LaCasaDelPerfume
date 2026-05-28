@@ -81,7 +81,6 @@ export async function guardarPedido(req, res) {
       ]
     );
 
-    console.log(`Pedido guardado: folio=${folio}, id=${result.insertId}, archivo=${filename}`);
     res.status(201).json({ success: true, pedidoId: result.insertId });
   } catch (error) {
     console.error('Error al guardar pedido:', error.message);

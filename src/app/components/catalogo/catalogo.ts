@@ -33,7 +33,6 @@ export class Catalogo implements OnInit {
       next: (data: Product[]) => {
         this.allProducts.set(data);
         this.products.set(data);
-        console.log('Productos cargados:', data);
       },
       error: (err: Error) => console.error('Error cargando productos:', err),
     });

@@ -9,6 +9,7 @@ export interface User {
   nombre: string;
   apellido?: string;
   telefono?: string;
+  rol?: 'user' | 'admin';
 }
 
 export interface UserRegistrationData {
@@ -49,9 +50,13 @@ export class UserService {
   }
 
   loginUsuario(data: { email: string; password: string }) {
-    return this.http.post<{ mensaje: string; token: string; usuario: { id: number; nombre: string; email: string } }>(
+    return this.http.post<{ mensaje: string; token: string; usuario: { id: number; nombre: string; email: string; rol: 'user' | 'admin' } }>(
       `${this.authUrl}/login`, data
     );
+  }
+
+  isAdmin(): boolean {
+    return this.usuario()?.rol === 'admin';
   }
 
   setUsuario(usuario: User, token: string): void {
