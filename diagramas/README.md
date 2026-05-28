@@ -1,21 +1,23 @@
 # 📊 Diagramas PlantUML — La Casa del Perfume
 
-Esta carpeta contiene **10 archivos `.puml`** con los diagramas técnicos completos del proyecto e-commerce Angular 21.
+Esta carpeta contiene **11 archivos `.puml`** con los diagramas técnicos completos del proyecto e-commerce Angular 21.
 
 ## 📁 Archivos incluidos
 
 | Archivo | Tipo | Descripción |
 |---------|------|-------------|
-| **A_DiagramaClases.puml** | UML Class | Modelos, Servicios, Componentes y sus relaciones |
-| **B_DiagramaER.puml** | Entity-Relation | Estructura de base de datos MariaDB (3 tablas) |
+| **A1_DiagramaClasesFrontend.puml** | UML Class | Modelos, Servicios, Componentes, Guards e Interceptors (Angular) |
+| **A2_DiagramaClasesBackend.puml** | UML Class | Controllers, Services, Middleware, Routes y Config (Node.js/Express) |
+| **B_DiagramaER.puml** | Entity-Relation | Estructura real de BD MariaDB (4 tablas: usuarios, productos, pedidos, password_resets) |
 | **C1_FlujoCatalogo.puml** | Activity | Flujo: Catálogo y búsqueda reactiva |
 | **C2_FlujoCarrito.puml** | Activity | Flujo: Carrito con PayPal SDK dinámico |
 | **C3_FlujoCheckout.puml** | Activity | Flujo: Checkout y procesamiento de pago |
 | **C4_FlujoHistorial.puml** | Activity | Flujo: Historial y detalle de compras |
 | **C5_FlujoPayPal.puml** | Activity | Flujo: Integración PayPal completa |
-| **D_DiagramaNavegacion.puml** | State | Diagrama de navegación (rutas SPA) |
-| **F_CasosDeUso.puml** | Use Case | 24 casos de uso con actores |
+| **D_DiagramaNavegacion.puml** | State | Diagrama de navegación (rutas SPA, authGuard) |
+| **F_CasosDeUso.puml** | Use Case | Casos de uso con actores (incluye auth JWT) |
 | **G_EstructuraXML.puml** | Class | Estructura jerárquica del recibo XML |
+| **H_FlujoLogin.puml** | Activity | Flujo: Login y Registro con JWT |
 
 ---
 
@@ -324,4 +326,4 @@ Si encuentras errores o necesitas actualizar diagramas:
 ---
 
 **Última actualización**: Mayo 2026  
-**Versión**: 2.0 (Mejorado - Signals, PayPal SDK dinámico, XML)
+**Versión**: 3.0 (Auth JWT, AuthGuard, AuthInterceptor, Login/Registro con bcrypt)

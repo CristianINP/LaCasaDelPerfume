@@ -1,0 +1,213 @@
+@startuml
+title Diagrama de Clases — Backend Node.js / Express\n(Controllers, Services, Middleware, Routes, Config)
+
+top to bottom direction
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam packageStyle rectangle
+skinparam backgroundColor #FAFAFA
+skinparam class {
+  BackgroundColor #FFF8E1
+  BorderColor #C9A84C
+  ArrowColor #C9A84C
+  FontColor #1A1A2E
+}
+
+' ══════════════════════════════════════════════
+' CONFIG
+' ══════════════════════════════════════════════
+package "Config (src/config)" {
+
+  class db {
+    <<mysql2 connection pool>>
+    --
+    host: process.env.DB_HOST
+    user: process.env.DB_USER
+    password: process.env.DB_PASSWORD
+    database: process.env.DB_NAME
+    --
+    + query(sql, params, cb): void
+    + promise().query(sql, params): Promise
+  }
+
+  class paypalConfig {
+    + clientId: string    [env: PAYPAL_CLIENT_ID]
+    + clientSecret: string [env: PAYPAL_CLIENT_SECRET]
+    + baseUrl: string     [sandbox / live]
+  }
+}
+
+' ══════════════════════════════════════════════
+' MIDDLEWARE
+' ══════════════════════════════════════════════
+package "Middleware (src/middleware)" {
+
+  class authMiddleware {
+    <<Express Middleware>>
+    --
+    + verifyToken(req, res, next): void
+    --
+    Extrae JWT de Authorization: Bearer <token>
+    jwt.verify(token, JWT_SECRET)
+    Si válido: req.user = {id, email}
+    Si inválido/expirado: 403 Forbidden
+  }
+}
+
+' ══════════════════════════════════════════════
+' SERVICES
+' ══════════════════════════════════════════════
+package "Services (src/services)" {
+
+  class PaypalService {
+    <<async functions>>
+    --
+    - getBasicAuth(): string
+    + getAccessToken(): Promise<string>
+    + createPaypalOrder(orderData): Promise<{id, status}>
+    + capturePaypalOrder(orderId): Promise<captureData>
+    --
+    API: POST /v1/oauth2/token
+    API: POST /v2/checkout/orders
+    API: POST /v2/checkout/orders/{id}/capture
+  }
+}
+
+' ══════════════════════════════════════════════
+' CONTROLLERS
+' ══════════════════════════════════════════════
+package "Controllers (src/controllers)" {
+
+  class AuthController {
+    <<async functions>>
+    --
+    + register(req, res): Promise<void>
+    + login(req, res): Promise<void>
+    --
+    register: bcrypt.hash(password, 10)
+              INSERT INTO usuarios
+    login:    bcrypt.compare(password, hash)
+              jwt.sign({id, email}, JWT_SECRET, {expiresIn: '1h'})
+  }
+
+  class UserController {
+    <<async functions>>
+    --
+    + getProfile(req, res): Promise<void>
+    + getOrderHistory(req, res): Promise<void>
+    --
+    getProfile:      SELECT FROM usuarios WHERE id_usuario = req.user.id
+    getOrderHistory: SELECT FROM pedidos WHERE usuario_id = req.user.id
+  }
+
+  class ProductosController {
+    <<function>>
+    --
+    + getProductos(req, res): void
+    --
+    SELECT * FROM productos
+  }
+
+  class PedidosController {
+    <<async functions>>
+    --
+    + getHistorialUsuario(req, res): Promise<void>
+    + getPedidoById(req, res): Promise<void>
+    --
+    getHistorialUsuario: SELECT FROM pedidos WHERE usuario_id = req.user.id
+    getPedidoById:       SELECT FROM pedidos WHERE id = ? AND usuario_id = ?
+                         Parsea detalle_json → items[]
+  }
+
+  class PaypalController {
+    <<async functions>>
+    --
+    + createOrder(req, res): Promise<void>
+    + captureOrder(req, res): Promise<void>
+    + guardarPedido(req, res): Promise<void>
+    --
+    createOrder:   PaypalService.createPaypalOrder({items, total})
+    captureOrder:  PaypalService.capturePaypalOrder(orderId)
+    guardarPedido: fs.writeFile(historial/{folio}.json)
+                   INSERT INTO pedidos (usuario_id, folio, ..., detalle_json, archivo_historial)
+  }
+}
+
+' ══════════════════════════════════════════════
+' ROUTES
+' ══════════════════════════════════════════════
+package "Routes (src/routes)" {
+
+  class AuthRoutes {
+    POST /api/auth/register → AuthController.register
+    POST /api/auth/login    → AuthController.login
+  }
+
+  class UserRoutes {
+    GET /api/user/profile  → [verifyToken] → UserController.getProfile
+    GET /api/user/history  → [verifyToken] → UserController.getOrderHistory
+  }
+
+  class ProductosRoutes {
+    GET /api/productos → [verifyToken] → ProductosController.getProductos
+  }
+
+  class PedidosRoutes {
+    GET /api/pedidos/historial → [verifyToken] → PedidosController.getHistorialUsuario
+    GET /api/pedidos/:id       → [verifyToken] → PedidosController.getPedidoById
+  }
+
+  class PaypalRoutes {
+    POST /api/paypal/create-order  → PaypalController.createOrder
+    POST /api/paypal/capture-order → PaypalController.captureOrder
+    POST /api/paypal/guardar-pedido → PaypalController.guardarPedido
+  }
+}
+
+' ══════════════════════════════════════════════
+' APP ENTRY
+' ══════════════════════════════════════════════
+package "App (src)" {
+
+  class ExpressApp {
+    <<app.js>>
+    --
+    app.use(cors())
+    app.use(express.json())
+    app.use('/api', ProductosRoutes)
+    app.use('/api', PedidosRoutes)
+    app.use('/api/paypal', PaypalRoutes)
+    app.use('/api/auth', AuthRoutes)
+    app.use('/api/user', UserRoutes)
+  }
+}
+
+' ══════════════════════════════════════════════
+' RELACIONES
+' ══════════════════════════════════════════════
+ExpressApp --> AuthRoutes
+ExpressApp --> UserRoutes
+ExpressApp --> ProductosRoutes
+ExpressApp --> PedidosRoutes
+ExpressApp --> PaypalRoutes
+
+AuthRoutes --> AuthController
+UserRoutes --> authMiddleware : verifyToken
+UserRoutes --> UserController
+ProductosRoutes --> authMiddleware : verifyToken
+ProductosRoutes --> ProductosController
+PedidosRoutes --> authMiddleware : verifyToken
+PedidosRoutes --> PedidosController
+PaypalRoutes --> PaypalController
+
+AuthController --> db : consultas SQL
+UserController --> db : consultas SQL
+ProductosController --> db : consultas SQL
+PedidosController --> db : consultas SQL
+PaypalController --> db : INSERT pedidos
+PaypalController --> PaypalService : crea/captura orden
+
+PaypalService --> paypalConfig : clientId, clientSecret, baseUrl
+
+@enduml
