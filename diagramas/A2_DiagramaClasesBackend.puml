@@ -50,8 +50,17 @@ package "Middleware (src/middleware)" {
     --
     Extrae JWT de Authorization: Bearer <token>
     jwt.verify(token, JWT_SECRET)
-    Si válido: req.user = {id, email}
+    Si válido: req.user = {id, email, rol}
     Si inválido/expirado: 403 Forbidden
+  }
+
+  class adminMiddleware {
+    <<Express Middleware>>
+    --
+    + verifyAdmin(req, res, next): void
+    --
+    Verifica req.user.rol === 'admin'
+    Si no: 403 Acceso denegado
   }
 }
 
@@ -84,21 +93,42 @@ package "Controllers (src/controllers)" {
     --
     + register(req, res): Promise<void>
     + login(req, res): Promise<void>
+    + forgotPassword(req, res): Promise<void>
+    + resetPassword(req, res): Promise<void>
     --
-    register: bcrypt.hash(password, 10)
-              INSERT INTO usuarios
-    login:    bcrypt.compare(password, hash)
-              jwt.sign({id, email}, JWT_SECRET, {expiresIn: '1h'})
+    register:       bcrypt.hash(password, 10) → INSERT INTO usuarios
+    login:          bcrypt.compare → jwt.sign({id, email, rol}, '7d')
+    forgotPassword: crypto.randomBytes(32) → INSERT password_resets
+                    nodemailer → envía email con enlace
+    resetPassword:  valida token → bcrypt.hash → UPDATE usuarios
   }
 
   class UserController {
     <<async functions>>
     --
     + getProfile(req, res): Promise<void>
+    + updateProfile(req, res): Promise<void>
     + getOrderHistory(req, res): Promise<void>
     --
     getProfile:      SELECT FROM usuarios WHERE id_usuario = req.user.id
+    updateProfile:   UPDATE usuarios SET nombre, apellido, telefono [, password]
     getOrderHistory: SELECT FROM pedidos WHERE usuario_id = req.user.id
+  }
+
+  class InventarioController {
+    <<async functions>>
+    --
+    + getInventario(req, res): Promise<void>
+    + crearProducto(req, res): Promise<void>
+    + actualizarProducto(req, res): Promise<void>
+    + desactivarProducto(req, res): Promise<void>
+    + activarProducto(req, res): Promise<void>
+    --
+    getInventario:      SELECT * FROM productos
+    crearProducto:      INSERT INTO productos
+    actualizarProducto: UPDATE productos WHERE id = ?
+    desactivarProducto: UPDATE productos SET activo=0
+    activarProducto:    UPDATE productos SET activo=1
   }
 
   class ProductosController {
@@ -140,13 +170,24 @@ package "Controllers (src/controllers)" {
 package "Routes (src/routes)" {
 
   class AuthRoutes {
-    POST /api/auth/register → AuthController.register
-    POST /api/auth/login    → AuthController.login
+    POST /api/auth/register         → AuthController.register
+    POST /api/auth/login            → AuthController.login
+    POST /api/auth/forgot-password  → AuthController.forgotPassword
+    POST /api/auth/reset-password   → AuthController.resetPassword
   }
 
   class UserRoutes {
     GET /api/user/profile  → [verifyToken] → UserController.getProfile
+    PUT /api/user/profile  → [verifyToken] → UserController.updateProfile
     GET /api/user/history  → [verifyToken] → UserController.getOrderHistory
+  }
+
+  class InventarioRoutes {
+    GET    /api/inventario      → [verifyToken, verifyAdmin] → InventarioController.getInventario
+    POST   /api/inventario      → [verifyToken, verifyAdmin] → InventarioController.crearProducto
+    PUT    /api/inventario/:id  → [verifyToken, verifyAdmin] → InventarioController.actualizarProducto
+    PATCH  /api/inventario/:id/desactivar → [verifyToken, verifyAdmin] → InventarioController.desactivarProducto
+    PATCH  /api/inventario/:id/activar    → [verifyToken, verifyAdmin] → InventarioController.activarProducto
   }
 
   class ProductosRoutes {
@@ -180,6 +221,7 @@ package "App (src)" {
     app.use('/api/paypal', PaypalRoutes)
     app.use('/api/auth', AuthRoutes)
     app.use('/api/user', UserRoutes)
+    app.use('/api/inventario', InventarioRoutes)
   }
 }
 
@@ -191,6 +233,7 @@ ExpressApp --> UserRoutes
 ExpressApp --> ProductosRoutes
 ExpressApp --> PedidosRoutes
 ExpressApp --> PaypalRoutes
+ExpressApp --> InventarioRoutes
 
 AuthRoutes --> AuthController
 UserRoutes --> authMiddleware : verifyToken
@@ -200,6 +243,9 @@ ProductosRoutes --> ProductosController
 PedidosRoutes --> authMiddleware : verifyToken
 PedidosRoutes --> PedidosController
 PaypalRoutes --> PaypalController
+InventarioRoutes --> authMiddleware : verifyToken
+InventarioRoutes --> adminMiddleware : verifyAdmin
+InventarioRoutes --> InventarioController
 
 AuthController --> db : consultas SQL
 UserController --> db : consultas SQL
@@ -207,6 +253,7 @@ ProductosController --> db : consultas SQL
 PedidosController --> db : consultas SQL
 PaypalController --> db : INSERT pedidos
 PaypalController --> PaypalService : crea/captura orden
+InventarioController --> db : CRUD productos
 
 PaypalService --> paypalConfig : clientId, clientSecret, baseUrl
 

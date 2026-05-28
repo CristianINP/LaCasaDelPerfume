@@ -41,6 +41,17 @@ wbsDiagram {
 *** Lista de compras
 *** Detalle de compra
 
+** Perfil del Cliente
+*** Datos personales
+*** Cambiar contraseña
+*** Eliminar cuenta
+
+** Panel Administrador
+*** Listado de productos
+*** Agregar producto
+*** Editar producto
+*** Eliminar producto
+
 ** Páginas informativas
 *** Contacto
 *** Política de privacidad

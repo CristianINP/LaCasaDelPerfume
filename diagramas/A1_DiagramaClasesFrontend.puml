@@ -71,6 +71,37 @@ package "Componentes (src/app/components)" #F8FAFC {
   
   class ContactosComponent {}
   class PrivacidadComponent {}
+
+  class PerfilComponent {
+    + form: { nombre, apellido, telefono }
+    + passwordForm: { nueva, confirmar }
+    + guardarPerfil(): Promise<void>
+  }
+
+  class InventarioComponent {
+    + productos: Signal<Producto[]>
+    + mostrarInactivos: Signal<boolean>
+    + productosFiltrados: Signal<Producto[]>
+    + abrirFormNuevo(): void
+    + editarProducto(p: Producto): void
+    + guardar(): Promise<void>
+    + desactivar(id: number): void
+    + activar(id: number): void
+  }
+
+  class ForgotPasswordComponent {
+    + email: string
+    + enviar(): Promise<void>
+  }
+
+  class ResetPasswordComponent {
+    + token: string
+    + password: string
+    + confirmPassword: string
+    + restablecer(): Promise<void>
+  }
+
+  class TerminosComponent {}
 }
 
 ' ══════════════════════════════════════════════
@@ -116,8 +147,19 @@ package "Servicios (src/app/services)" #ECF2FE {
     - http: HttpClient
     + usuario: WritableSignal<User | null>
     + loginUsuario(data: any): Observable
+    + registrarUsuario(data: UserRegistrationData): Observable
     + getToken(): string | null
     + getUsuarioActual(): User | null
+    + isAdmin(): boolean
+  }
+
+  class InventarioService {
+    - http: HttpClient
+    + getInventario(): Observable<{data: Producto[]}>
+    + crearProducto(p: ProductoForm): Observable
+    + actualizarProducto(id: number, p: ProductoForm): Observable
+    + desactivarProducto(id: number): Observable
+    + activarProducto(id: number): Observable
   }
 }
 
@@ -171,12 +213,37 @@ package "Modelos (src/app/models)" #F1F5F9 {
     + id_usuario: number
     + email: string
     + nombre: string
+    + apellido?: string
+    + telefono?: string
+    + rol?: 'user' | 'admin'
   }
 
   class UserRegistrationData {
     + nombre: string
+    + apellido: string
     + email: string
     + password: string
+    + telefono?: string
+  }
+
+  class Producto {
+    + id: number
+    + name: string
+    + price: number
+    + imageUrl: string | null
+    + category: string | null
+    + description: string | null
+    + inStock: number
+    + activo: number
+  }
+
+  class ProductoForm {
+    + name: string
+    + price: number
+    + imageUrl: string
+    + category: string
+    + description: string
+    + inStock: boolean
   }
 }
 
@@ -198,6 +265,11 @@ CheckoutComponent -[hidden]right-> HistorialComprasComponent
 HistorialComprasComponent -[hidden]right-> DetalleCompraComponent
 DetalleCompraComponent -[hidden]right-> ContactosComponent
 ContactosComponent -[hidden]right-> PrivacidadComponent
+PrivacidadComponent -[hidden]right-> PerfilComponent
+PerfilComponent -[hidden]right-> InventarioComponent
+InventarioComponent -[hidden]right-> ForgotPasswordComponent
+ForgotPasswordComponent -[hidden]right-> ResetPasswordComponent
+ResetPasswordComponent -[hidden]right-> TerminosComponent
 
 ' Fuerza el orden horizontal de los servicios
 CarritoService -[hidden]right-> SearchService
@@ -205,6 +277,7 @@ SearchService -[hidden]right-> ProductsService
 ProductsService -[hidden]right-> HistorialComprasService
 HistorialComprasService -[hidden]right-> PaypalService
 PaypalService -[hidden]right-> UserService
+UserService -[hidden]right-> InventarioService
 
 ' ══════════════════════════════════════════════
 ' RELACIONES EN FORMATO VERTICAL (down)
@@ -225,6 +298,10 @@ CheckoutComponent -[#3B82F6]down-> PaypalService
 CheckoutComponent -[#3B82F6]down-> HistorialComprasService
 HistorialComprasComponent -[#3B82F6]down-> HistorialComprasService
 DetalleCompraComponent -[#3B82F6]down-> HistorialComprasService
+PerfilComponent -[#3B82F6]down-> UserService
+InventarioComponent -[#3B82F6]down-> InventarioService
+ForgotPasswordComponent -[#3B82F6]down-> UserService
+ResetPasswordComponent -[#3B82F6]down-> UserService
 
 ' UI Layout interno
 HomeComponent *-> CatalogoComponent
@@ -235,6 +312,8 @@ ProductsService -[#64748B]down-> Product
 CarritoService -[#64748B]down-> CartItem
 CarritoService -[#64748B]down-> PedidoPayload
 HistorialComprasService -[#64748B]down-> PurchaseOrder
+InventarioService -[#64748B]down-> Producto
+InventarioService -[#64748B]down-> ProductoForm
 
 ' Estructura interna de Modelos
 PurchaseOrder "1" *-> "many" PurchaseItem
