@@ -80,8 +80,13 @@
                           (click)="quitar(item.product.id)">−</button>
                   <span class="qty">{{ item.quantity }}</span>
                   <button type="button" class="qty-btn plus"
+                          [disabled]="item.quantity >= item.product.inStock"
+                          [class.at-limit]="item.quantity >= item.product.inStock"
                           (click)="agregar(item.product)">+</button>
                 </div>
+                @if (stockWarnings()[item.product.id]) {
+                  <p class="stock-limit-msg">Stock máximo alcanzado ({{ item.product.inStock }} uds.)</p>
+                }
                 <span class="item-price">
                   {{ item.product.price * item.quantity | currency:'MXN' }}
                 </span>

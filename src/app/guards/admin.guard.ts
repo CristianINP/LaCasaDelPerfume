@@ -9,5 +9,5 @@ export const adminGuard: CanActivateFn = () => {
   if (userService.isAdmin()) {
     return true;
   }
-  return router.createUrlTree(['/']);
+  return router.createUrlTree(['/catalogo'], { queryParams: { acceso: 'denegado' } });
 };

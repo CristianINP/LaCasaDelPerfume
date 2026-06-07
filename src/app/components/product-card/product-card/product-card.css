@@ -40,7 +40,7 @@
 
 /* Imagen */
 .image-container {
-  position: center;
+  position: relative;
   aspect-ratio: 3/3.5;
   margin-bottom: 16px;
   overflow: hidden;
@@ -282,6 +282,28 @@
 
 .product-card {
   animation: fadeInUp 0.5s ease forwards;
+}
+
+.stock-warning {
+  font-size: 11px;
+  color: #ff9800;
+  text-align: center;
+  margin: 0 0 6px;
+  letter-spacing: 0.5px;
+}
+
+.qty-btn.at-limit,
+.qty-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.qty-btn:disabled:hover {
+  background: rgba(74, 158, 255, 0.1);
+  border-color: rgba(74, 158, 255, 0.3);
+  color: var(--star-white);
+  transform: none;
+  box-shadow: none;
 }
 
 /* Responsive */

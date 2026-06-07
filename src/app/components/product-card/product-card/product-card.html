@@ -7,24 +7,42 @@
   <div class="product-info">
     <h3 class="product-name">{{product.name}}</h3>
     <p class="product-description">{{product.description}}</p>
-    
+
     <div class="product-footer">
       <span class="price">${{product.price}}</span>
-      <span class="stock" [class.in-stock]="product.inStock" [class.out-of-stock]="!product.inStock">
-        {{ product.inStock ? 'En stock' : 'Agotado' }}
+      <span class="stock" [class.in-stock]="product.inStock > 0" [class.out-of-stock]="product.inStock === 0">
+        {{ product.inStock > 0 ? product.inStock + (product.inStock === 1 ? ' disponible' : ' disponibles') : 'Agotado' }}
       </span>
     </div>
-    
-    @if (product.inStock) {
+
+    @if (product.inStock > 0) {
       <div class="quantity-selector">
-        <button class="qty-btn" (click)="decrementQuantity()">-</button>
+        <button class="qty-btn" (click)="decrementQuantity()" [disabled]="quantity() <= 1">-</button>
         <span class="qty-value">{{ quantity() }}</span>
-        <button class="qty-btn" (click)="incrementQuantity()">+</button>
+        <button class="qty-btn" (click)="incrementQuantity()"
+                [disabled]="atStockLimit()"
+                [class.at-limit]="atStockLimit()">+</button>
       </div>
+
+      @if (stockWarning()) {
+        <p class="stock-warning">
+          @if (cartQuantity() > 0 && availableToAdd() === 0) {
+            Ya tiene {{ cartQuantity() }} en su carrito (sin más stock disponible)
+          } @else {
+            Máximo disponible en stock
+          }
+        </p>
+      }
     }
-    
-    <button class="add-btn" [disabled]="!product.inStock" (click)="onAdd()">
-      {{ product.inStock ? 'Agregar al carrito' : 'No disponible' }}
+
+    <button class="add-btn" [disabled]="availableToAdd() === 0" (click)="onAdd()">
+      @if (product.inStock === 0) {
+        No disponible
+      } @else if (availableToAdd() === 0) {
+        Todo el stock está en su carrito
+      } @else {
+        Agregar al carrito
+      }
     </button>
   </div>
 </article>

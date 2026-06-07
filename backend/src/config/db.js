@@ -13,10 +13,10 @@ const pool = mysql.createPool({
 
 pool.getConnection((error, connection) => {
   if (error) {
-    console.error('Error conectando a MySQL:', error.message);
+    console.error('Error conectando a MySQL. ', error.message);
     return;
   }
-  console.log('Conectado a la base de datos MySQL');
+  console.log('Conectado a la base de datos MySQL.');
   connection.release();
 });
 

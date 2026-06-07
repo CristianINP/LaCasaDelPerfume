@@ -19,7 +19,7 @@ export interface ProductoForm {
   imageUrl: string;
   category: string;
   description: string;
-  inStock: boolean;
+  inStock: number;
 }
 
 @Injectable({ providedIn: 'root' })

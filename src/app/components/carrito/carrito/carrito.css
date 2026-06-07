@@ -546,3 +546,18 @@
   font-size: 0.95rem;
   opacity: 0.8;
 }
+
+.qty-btn.at-limit,
+.qty-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.stock-limit-msg {
+  font-size: 11px;
+  color: #ff9800;
+  margin: 4px 0 0;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}

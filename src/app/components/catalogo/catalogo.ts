@@ -1,5 +1,6 @@
 import { Component, computed, signal, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { Product } from '../../models/producto/producto';
 import { ProductsService } from '../../services/productos/productos';
 import { CarritoService } from '../../services/carrito/carrito/carrito';
@@ -24,9 +25,12 @@ export class Catalogo implements OnInit {
   showModal = signal(false);
   modalProductName = signal('');
 
+  private route = inject(ActivatedRoute);
   private productsService = inject(ProductsService);
   public carritoService = inject(CarritoService);
   public searchService = inject(SearchService);
+
+  accesoDenegado = signal(false);
 
   ngOnInit(): void {
     this.productsService.getAll().subscribe({
@@ -36,6 +40,11 @@ export class Catalogo implements OnInit {
       },
       error: (err: Error) => console.error('Error cargando productos:', err),
     });
+
+    if (this.route.snapshot.queryParams['acceso'] === 'denegado') {
+      this.accesoDenegado.set(true);
+      setTimeout(() => this.accesoDenegado.set(false), 4000);
+    }
   }
 
   categories = computed(() => {
@@ -83,7 +92,7 @@ export class Catalogo implements OnInit {
     
     // Filter by stock
     if (this.onlyInStock()) {
-      result = result.filter(p => p.inStock);
+      result = result.filter(p => p.inStock > 0);
     }
     
     // Sort results

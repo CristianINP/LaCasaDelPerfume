@@ -20,6 +20,13 @@ export class LoginComponent implements AfterViewInit {
   nombre = '';
   apellido = '';
   telefono = '';
+  rfc = '';
+  regimenFiscal = '';
+  regimenFiscalOtro = false;
+  regimenFiscalCustom = '';
+  usoCfdi = '';
+  usoCfdiOtro = false;
+  usoCfdiCustom = '';
 
   modoRegistro = false;
   mensaje = signal('');
@@ -29,6 +36,16 @@ export class LoginComponent implements AfterViewInit {
   alternarModo(): void {
     this.modoRegistro = !this.modoRegistro;
     this.limpiar();
+  }
+
+  onRegimenFiscalChange(): void {
+    this.regimenFiscalOtro = this.regimenFiscal === 'otro';
+    if (!this.regimenFiscalOtro) this.regimenFiscalCustom = '';
+  }
+
+  onUsoCfdiChange(): void {
+    this.usoCfdiOtro = this.usoCfdi === 'otro';
+    if (!this.usoCfdiOtro) this.usoCfdiCustom = '';
   }
 
   async submit(): Promise<void> {
@@ -47,13 +64,33 @@ export class LoginComponent implements AfterViewInit {
           this.cargando.set(false);
           return;
         }
+        if (!this.rfc.trim()) {
+          this.mensaje.set('El RFC es obligatorio para generar tu recibo');
+          this.cargando.set(false);
+          return;
+        }
+        const regimenFinalizado = this.regimenFiscalOtro ? this.regimenFiscalCustom : this.regimenFiscal;
+        if (!regimenFinalizado) {
+          this.mensaje.set('Selecciona tu Régimen Fiscal');
+          this.cargando.set(false);
+          return;
+        }
+        const usoCfdiFinalizado = this.usoCfdiOtro ? this.usoCfdiCustom : this.usoCfdi;
+        if (!usoCfdiFinalizado) {
+          this.mensaje.set('Selecciona el Uso del CFDI');
+          this.cargando.set(false);
+          return;
+        }
         await firstValueFrom(
           this.userService.registrarUsuario({
             nombre: this.nombre,
             apellido: this.apellido,
             email: this.email,
             password: this.password,
-            telefono: this.telefono
+            telefono: this.telefono || undefined,
+            rfc: this.rfc || undefined,
+            regimenFiscal: regimenFinalizado || undefined,
+            usoCfdi: usoCfdiFinalizado || undefined
           })
         );
       }
@@ -63,7 +100,15 @@ export class LoginComponent implements AfterViewInit {
       );
 
       this.userService.setUsuario(
-        { id_usuario: resp.usuario.id, nombre: resp.usuario.nombre, email: resp.usuario.email, rol: resp.usuario.rol },
+        {
+          id_usuario: resp.usuario.id,
+          nombre: resp.usuario.nombre,
+          email: resp.usuario.email,
+          rol: resp.usuario.rol,
+          rfc: resp.usuario.rfc || undefined,
+          regimenFiscal: resp.usuario.regimenFiscal || undefined,
+          usoCfdi: resp.usuario.usoCfdi || undefined
+        },
         resp.token
       );
 
@@ -86,6 +131,13 @@ export class LoginComponent implements AfterViewInit {
     this.nombre = '';
     this.apellido = '';
     this.telefono = '';
+    this.rfc = '';
+    this.regimenFiscal = '';
+    this.regimenFiscalOtro = false;
+    this.regimenFiscalCustom = '';
+    this.usoCfdi = '';
+    this.usoCfdiOtro = false;
+    this.usoCfdiCustom = '';
     this.mensaje.set('');
   }
 

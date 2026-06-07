@@ -66,7 +66,7 @@ export class InventarioComponent implements OnInit {
       imageUrl: p.imageUrl ?? '',
       category: p.category ?? '',
       description: p.description ?? '',
-      inStock: p.inStock === 1,
+      inStock: p.inStock,
     };
     this.modoEdicion.set(true);
     this.productoEditandoId.set(p.id);
@@ -131,6 +131,6 @@ export class InventarioComponent implements OnInit {
   }
 
   private formVacio(): ProductoForm {
-    return { name: '', price: 0, imageUrl: '', category: '', description: '', inStock: true };
+    return { name: '', price: 0, imageUrl: '', category: '', description: '', inStock: 0 };
   }
 }

@@ -7,7 +7,10 @@ import nodemailer from 'nodemailer';
 // REGISTRO
 export const register = async (req, res) => {
   try {
-    const { nombre, apellido = '', email, password, telefono } = req.body;
+    const { nombre, apellido = '', email, password, telefono, rfc,
+      regimen_fiscal, regimenFiscal, uso_cfdi, usoCfdi } = req.body;
+    const regimenFiscalFinal = regimen_fiscal || regimenFiscal || null;
+    const usoCfdiFinal = uso_cfdi || usoCfdi || null;
 
     if (!nombre || !email || !password) {
       return res.status(400).json({ mensaje: 'nombre, email y password son obligatorios' });
@@ -25,8 +28,8 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await db.promise().query(
-      'INSERT INTO usuarios (nombre, apellido, email, telefono, password) VALUES (?, ?, ?, ?, ?)',
-      [nombre, apellido, email, telefono || null, hashedPassword]
+      'INSERT INTO usuarios (nombre, apellido, email, telefono, password, rfc, regimen_fiscal, uso_cfdi) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [nombre, apellido, email, telefono || null, hashedPassword, rfc || null, regimenFiscalFinal, usoCfdiFinal]
     );
 
     res.status(201).json({ mensaje: 'Usuario registrado correctamente' });
@@ -74,7 +77,15 @@ export const login = async (req, res) => {
     res.json({
       mensaje: 'Login correcto',
       token,
-      usuario: { id: user.id_usuario, nombre: user.nombre, email: user.email, rol: user.rol }
+      usuario: {
+        id: user.id_usuario,
+        nombre: user.nombre,
+        email: user.email,
+        rol: user.rol,
+        rfc: user.rfc || null,
+        regimenFiscal: user.regimen_fiscal || null,
+        usoCfdi: user.uso_cfdi || null
+      }
     });
   } catch (error) {
     console.error('Error en login:', error.message);

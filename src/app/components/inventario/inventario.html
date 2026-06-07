@@ -108,11 +108,9 @@
             <label>Descripción</label>
             <textarea [(ngModel)]="form.description" placeholder="Descripción del producto..." rows="3" class="form-input form-textarea"></textarea>
           </div>
-          <div class="form-group form-group--check">
-            <label class="check-label">
-              <input type="checkbox" [(ngModel)]="form.inStock" class="form-check"/>
-              En stock
-            </label>
+          <div class="form-group">
+            <label>Cantidad en stock</label>
+            <input type="number" [(ngModel)]="form.inStock" min="0" step="1" placeholder="0" class="form-input"/>
           </div>
         </div>
         <div class="form-btns">
@@ -171,8 +169,8 @@
                 </td>
                 <td class="td-price"><span>${{ p.price | number:'1.2-2' }}</span></td>
                 <td>
-                  <span class="badge-stock" [class.in]="p.inStock" [class.out]="!p.inStock">
-                    {{ p.inStock ? 'Disponible' : 'Agotado' }}
+                  <span class="badge-stock" [class.in]="p.inStock > 0" [class.out]="p.inStock === 0">
+                    {{ p.inStock > 0 ? p.inStock + ' en stock' : 'Agotado' }}
                   </span>
                 </td>
                 <td>

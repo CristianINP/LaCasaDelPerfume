@@ -10,6 +10,13 @@ export interface PedidoPayload {
   iva: number;
   total: number;
   usuario_id: number | null;
+  email_usuario?: string;
+  datos_fiscales?: {
+    nombre?: string;
+    rfc?: string;
+    regimenFiscal?: string;
+    usoCfdi?: string;
+  };
   items: {
     producto_id: number;
     nombre_producto: string;

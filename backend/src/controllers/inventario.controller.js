@@ -18,7 +18,7 @@ export const crearProducto = async (req, res) => {
     }
     const [result] = await db.promise().query(
       'INSERT INTO productos (name, price, imageUrl, category, description, inStock, activo) VALUES (?, ?, ?, ?, ?, ?, 1)',
-      [name, Number(price), imageUrl || null, category || null, description || null, inStock ? 1 : 1]
+      [name, Number(price), imageUrl || null, category || null, description || null, Math.max(0, parseInt(inStock) || 0)]
     );
     res.status(201).json({ success: true, id: result.insertId });
   } catch (error) {
@@ -36,7 +36,7 @@ export const actualizarProducto = async (req, res) => {
     }
     await db.promise().query(
       'UPDATE productos SET name=?, price=?, imageUrl=?, category=?, description=?, inStock=? WHERE id=?',
-      [name, Number(price), imageUrl || null, category || null, description || null, inStock ? 1 : 0, id]
+      [name, Number(price), imageUrl || null, category || null, description || null, Math.max(0, parseInt(inStock) || 0), id]
     );
     res.json({ success: true });
   } catch (error) {

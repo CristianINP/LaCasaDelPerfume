@@ -49,6 +49,7 @@ export class CarritoComponent implements AfterViewInit, OnDestroy {
   mensaje        = signal('');
   pagoExitoso    = signal(false);
   folioPago      = signal('');
+  stockWarnings  = signal<Record<number, boolean>>({});
   cargandoPaypal = signal(false);
 
   private sdkCargado     = false;
@@ -232,6 +233,13 @@ export class CarritoComponent implements AfterViewInit, OnDestroy {
           iva: impuestos,
           total,
           usuario_id: usuario?.id_usuario ?? null,
+          email_usuario: usuario?.email ?? undefined,
+          datos_fiscales: usuario ? {
+            nombre: `${usuario.nombre} ${usuario.apellido || ''}`.trim(),
+            rfc: usuario.rfc ?? undefined,
+            regimenFiscal: usuario.regimenFiscal ?? undefined,
+            usoCfdi: usuario.usoCfdi ?? undefined,
+          } : undefined,
           items: this.carritoService.groupedItems().map(item => ({
             producto_id:     item.product.id,
             nombre_producto: item.product.name,
@@ -277,7 +285,24 @@ export class CarritoComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  agregar(producto: Product)  { this.carritoService.agregar(producto); }
+  agregar(producto: Product) {
+    const currentQty = this.groupedItems().find(i => i.product.id === producto.id)?.quantity ?? 0;
+    if (currentQty >= producto.inStock) {
+      this.stockWarnings.update(w => ({ ...w, [producto.id]: true }));
+      setTimeout(() => this.stockWarnings.update(w => {
+        const copy = { ...w };
+        delete copy[producto.id];
+        return copy;
+      }), 3000);
+      return;
+    }
+    this.carritoService.agregar(producto);
+    this.stockWarnings.update(w => {
+      const copy = { ...w };
+      delete copy[producto.id];
+      return copy;
+    });
+  }
   quitar(id: number)           { this.carritoService.quitar(id); }
   removeAll(id: number)        { this.carritoService.removeAll(id); }
   vaciar()                     { this.carritoService.vaciar(); }

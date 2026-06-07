@@ -1,0 +1,20 @@
+{
+  "folio": "ORD-1780792690182",
+  "paypalOrderId": "8MT860404W5842123",
+  "paypalEstado": "COMPLETED",
+  "fecha": "2026-06-07T00:38:10.187Z",
+  "usuario_id": 12,
+  "subtotal": 1999,
+  "iva": 319.84000000000003,
+  "total": 2318.8399999999997,
+  "items": [
+    {
+      "producto_id": 3,
+      "nombre_producto": "Carolina Herrera 212 VIP",
+      "categoria": "Perfume masculino",
+      "cantidad": 1,
+      "precio_unitario": 1999,
+      "importe": 1999
+    }
+  ]
+}

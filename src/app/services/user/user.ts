@@ -10,6 +10,9 @@ export interface User {
   apellido?: string;
   telefono?: string;
   rol?: 'user' | 'admin';
+  rfc?: string;
+  regimenFiscal?: string;
+  usoCfdi?: string;
 }
 
 export interface UserRegistrationData {
@@ -18,6 +21,9 @@ export interface UserRegistrationData {
   email: string;
   password: string;
   telefono?: string;
+  rfc?: string;
+  regimenFiscal?: string;
+  usoCfdi?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -50,9 +56,11 @@ export class UserService {
   }
 
   loginUsuario(data: { email: string; password: string }) {
-    return this.http.post<{ mensaje: string; token: string; usuario: { id: number; nombre: string; email: string; rol: 'user' | 'admin' } }>(
-      `${this.authUrl}/login`, data
-    );
+    return this.http.post<{
+      mensaje: string;
+      token: string;
+      usuario: { id: number; nombre: string; email: string; rol: 'user' | 'admin'; rfc?: string; regimenFiscal?: string; usoCfdi?: string };
+    }>(`${this.authUrl}/login`, data);
   }
 
   isAdmin(): boolean {

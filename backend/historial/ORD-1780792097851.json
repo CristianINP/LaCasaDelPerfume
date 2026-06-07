@@ -1,0 +1,20 @@
+{
+  "folio": "ORD-1780792097851",
+  "paypalOrderId": "9464508917312980F",
+  "paypalEstado": "COMPLETED",
+  "fecha": "2026-06-07T00:28:17.855Z",
+  "usuario_id": 12,
+  "subtotal": 24500,
+  "iva": 3920,
+  "total": 28419.999999999996,
+  "items": [
+    {
+      "producto_id": 8,
+      "nombre_producto": "Bleu de Chanel",
+      "categoria": "Perfume masculino",
+      "cantidad": 7,
+      "precio_unitario": 3500,
+      "importe": 24500
+    }
+  ]
+}
