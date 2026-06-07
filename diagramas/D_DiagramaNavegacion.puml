@@ -20,44 +20,21 @@ wbsDiagram {
 }
 </style>
 
-* La Casa del Perfume\nMapa de Navegación Web
+* La Casa del Perfume\nFlujo de Navegación Web
 
-** Login / Registro
-*** Iniciar sesión
-*** Crear cuenta
-*** Cerrar sesión
+** /login\nLogin / Registro
+*** /forgot-password\nRecuperar Contraseña
+**** /reset-password\nRestablecer Contraseña
 
-** Inicio + Catálogo
-*** Catálogo de perfumes
-*** Búsqueda / filtros
-*** Animación Starfield
+** / · /catalogo\nInicio + Catálogo
+*** /carrito\nCarrito de Compras
+**** /checkout\nCheckout
+*** /historial\nHistorial de Compras
+**** /historial/:id\nDetalle de Compra
+*** /perfil\nPerfil del Cliente
+*** /privacidad\nPrivacidad
+*** /terminos\nTérminos
 
-** Carrito
-*** Resumen de ítems
-*** Pago con PayPal
-*** Descarga recibo XML
-
-** Historial
-*** Lista de compras
-*** Detalle de compra
-
-** Perfil del Cliente
-*** Datos personales
-*** Cambiar contraseña
-*** Eliminar cuenta
-
-** Panel Administrador
-*** Listado de productos
-*** Agregar producto
-*** Editar producto
-*** Eliminar producto
-
-** Páginas informativas
-*** Contacto
-*** Política de privacidad
-
-** Checkout
-*** Resumen final
-*** Pago con PayPal
+** /admin/inventario\nPanel Administrador
 
 @endwbs

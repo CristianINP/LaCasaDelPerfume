@@ -81,6 +81,19 @@ package "Services (src/services)" {
     API: POST /v2/checkout/orders
     API: POST /v2/checkout/orders/{id}/capture
   }
+
+  class EmailPedidoService {
+    <<async functions — nodemailer>>
+    --
+    + enviarConfirmacionPedido(params): Promise<void>
+    - generarCFDIXml(folio, items, subtotal, iva, total, datosUsuario): string
+    - escapeXml(value): string
+    - formatCurrency(amount): string
+    --
+    Genera CFDI 3.3 XML adjunto
+    Envía email HTML con detalles del pedido
+    SMTP: Gmail via process.env.EMAIL_USER / EMAIL_PASS
+  }
 }
 
 ' ══════════════════════════════════════════════
@@ -97,7 +110,10 @@ package "Controllers (src/controllers)" {
     + resetPassword(req, res): Promise<void>
     --
     register:       bcrypt.hash(password, 10) → INSERT INTO usuarios
+                    Acepta: nombre, apellido, email, password, telefono,
+                            rfc, regimenFiscal, usoCfdi
     login:          bcrypt.compare → jwt.sign({id, email, rol}, '7d')
+                    Retorna: {token, usuario{id,nombre,email,rol,rfc,regimenFiscal,usoCfdi}}
     forgotPassword: crypto.randomBytes(32) → INSERT password_resets
                     nodemailer → envía email con enlace
     resetPassword:  valida token → bcrypt.hash → UPDATE usuarios
@@ -110,8 +126,10 @@ package "Controllers (src/controllers)" {
     + updateProfile(req, res): Promise<void>
     + getOrderHistory(req, res): Promise<void>
     --
-    getProfile:      SELECT FROM usuarios WHERE id_usuario = req.user.id
-    updateProfile:   UPDATE usuarios SET nombre, apellido, telefono [, password]
+    getProfile:      SELECT id_usuario, nombre, apellido, email, telefono,
+                            rfc, regimen_fiscal, uso_cfdi FROM usuarios
+    updateProfile:   UPDATE usuarios SET nombre, apellido, telefono, email,
+                            rfc, regimen_fiscal, uso_cfdi [, password]
     getOrderHistory: SELECT FROM pedidos WHERE usuario_id = req.user.id
   }
 
@@ -161,6 +179,10 @@ package "Controllers (src/controllers)" {
     captureOrder:  PaypalService.capturePaypalOrder(orderId)
     guardarPedido: fs.writeFile(historial/{folio}.json)
                    INSERT INTO pedidos (usuario_id, folio, ..., detalle_json, archivo_historial)
+                   UPDATE productos SET inStock = GREATEST(0, inStock - qty) — descuento de stock
+                   EmailPedidoService.enviarConfirmacionPedido() — si email_usuario presente
+                   Acepta: folio, paypalOrderId, paypalEstado, subtotal, iva, total,
+                           items, usuario_id, email_usuario, datos_fiscales
   }
 }
 
@@ -251,8 +273,9 @@ AuthController --> db : consultas SQL
 UserController --> db : consultas SQL
 ProductosController --> db : consultas SQL
 PedidosController --> db : consultas SQL
-PaypalController --> db : INSERT pedidos
+PaypalController --> db : INSERT pedidos + UPDATE stock
 PaypalController --> PaypalService : crea/captura orden
+PaypalController --> EmailPedidoService : envía confirmación (async)
 InventarioController --> db : CRUD productos
 
 PaypalService --> paypalConfig : clientId, clientSecret, baseUrl

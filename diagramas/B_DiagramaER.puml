@@ -12,15 +12,18 @@ skinparam ArrowColor #3A6BC9
 skinparam backgroundColor #FAFAFA
 
 entity "usuarios" as USR {
-  * id_usuario : INT(11) [PK, AUTO_INCREMENT]
+  * id_usuario    : INT(11) [PK, AUTO_INCREMENT]
   --
-  email      : VARCHAR(255) [UNIQUE, NOT NULL]
-  nombre     : VARCHAR(100) [NOT NULL]
-  apellido   : VARCHAR(100) [NOT NULL]
-  telefono   : VARCHAR(20)  [nullable]
-  password   : VARCHAR(255) [nullable — bcrypt hash]
-  created_at : TIMESTAMP    [DEFAULT current_timestamp()]
-  rol        : ENUM('user','admin') [DEFAULT 'user']
+  email          : VARCHAR(255) [UNIQUE, NOT NULL]
+  nombre         : VARCHAR(100) [NOT NULL]
+  apellido       : VARCHAR(100) [NOT NULL]
+  telefono       : VARCHAR(20)  [nullable]
+  password       : VARCHAR(255) [nullable — bcrypt hash]
+  created_at     : TIMESTAMP    [DEFAULT current_timestamp()]
+  rol            : ENUM('user','admin') [DEFAULT 'user']
+  rfc            : VARCHAR(20)  [nullable — datos fiscales CFDI]
+  regimen_fiscal : VARCHAR(10)  [nullable]
+  uso_cfdi       : VARCHAR(10)  [nullable]
 }
 
 entity "productos" as PROD {
@@ -31,7 +34,7 @@ entity "productos" as PROD {
   imageUrl    : TEXT
   category    : VARCHAR(50)
   description : TEXT
-  inStock     : TINYINT(1)
+  inStock     : INT        [DEFAULT 0 — cantidad en existencia]
   activo      : TINYINT(1) [DEFAULT 1]
 }
 

@@ -7,13 +7,9 @@ start
   :ngAfterViewInit() → initStarfield();
 
   :Usuario navega a / o /catalogo;
-  note right
-    Ambas rutas cargan HomeComponent.
-    El Catálogo es una sección dentro de Home.
-  end note
 
   :CatalogoComponent.ngOnInit();
-  :ProductsService.getProducts() → GET /api/productos;
+  :ProductsService.getAll() → GET /api/productos;
 
   if (¿Backend disponible?) then (Sí)
     :Carga productos[] en products signal;
@@ -51,12 +47,13 @@ start
   :ProductCardComponent.onAdd() → emite ProductAddEvent;
 
   :CatalogoComponent.agregar(event: ProductAddEvent);
-  :CarritoService.agregar(product, quantity);
-  :productosSignal se actualiza;
+  :CarritoService.agregar(product, event.quantity);
+  :productosSignal se actualiza (persiste en localStorage);
   :itemCount computed se recalcula;
 
   :NavbarComponent muestra contador actualizado;
-  :showModal signal = true → confirmación visual;
+  :modalProductName signal = nombre del producto;
+  :showModal signal = true → confirmación visual (2.5s);
 
 stop
 @enduml

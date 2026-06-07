@@ -25,7 +25,29 @@ skinparam class {
 package "Componentes (src/app/components)" #F8FAFC {
   class LoginComponent {
     + modoRegistro: boolean
+    + email: string
+    + password: string
+    + nombre: string
+    + apellido: string
+    + telefono: string
+    + rfc: string
+    + regimenFiscal: string
+    + regimenFiscalOtro: boolean
+    + regimenFiscalCustom: string
+    + usoCfdi: string
+    + usoCfdiOtro: boolean
+    + usoCfdiCustom: string
+    + mensaje: Signal<string>
+    + cargando: Signal<boolean>
+    + mostrarPassword: Signal<boolean>
+    + alternarModo(): void
+    + onRegimenFiscalChange(): void
+    + onUsoCfdiChange(): void
     + submit(): Promise<void>
+    + esError(): boolean
+    + limpiar(): void
+    + ngAfterViewInit(): void
+    - initStarfield(): void
   }
 
   class HomeComponent {
@@ -46,7 +68,14 @@ package "Componentes (src/app/components)" #F8FAFC {
 
   class ProductCardComponent {
     + product: Product
-    + add: EventEmitter
+    + add: EventEmitter<ProductAddEvent>
+    + quantity: Signal<number>
+    + cartQuantity: Signal<number>
+    + availableToAdd: Signal<number>
+    + atStockLimit: Signal<boolean>
+    + stockWarning: Signal<boolean>
+    + incrementQuantity(): void
+    + decrementQuantity(): void
     + onAdd(): void
   }
 
@@ -69,12 +98,22 @@ package "Componentes (src/app/components)" #F8FAFC {
     + compra: PurchaseOrder
   }
   
-  class ContactosComponent {}
   class PrivacidadComponent {}
+  class TerminosComponent {}
 
   class PerfilComponent {
-    + form: { nombre, apellido, telefono }
+    + perfil: Signal<PerfilData | null>
+    + loading: Signal<boolean>
+    + guardando: Signal<boolean>
+    + error: Signal<string>
+    + exito: Signal<string>
+    + mostrarCambioPassword: boolean
+    + form: { nombre, apellido, email, telefono, rfc, regimenFiscal, usoCfdi, ... }
     + passwordForm: { nueva, confirmar }
+    + ngOnInit(): Promise<void>
+    - populateForm(data: PerfilData): void
+    + onRegimenFiscalChange(): void
+    + onUsoCfdiChange(): void
     + guardarPerfil(): Promise<void>
   }
 
@@ -109,14 +148,25 @@ package "Componentes (src/app/components)" #F8FAFC {
 ' ══════════════════════════════════════════════
 package "Servicios (src/app/services)" #ECF2FE {
   class CarritoService {
-    - productosSignal: WritableSignal
+    - productosSignal: WritableSignal<Product[]>
+    - currentUserId: number | null
+    + productos: ReadonlySignal<Product[]>
     + groupedItems: Signal<CartItem[]>
     + itemCount: Signal<number>
     + subtotal: Signal<number>
+    + impuestos: Signal<number>
     + totalConImpuestos: Signal<number>
-    + agregar(producto: Product): void
+    + total: Signal<number>
+    + carrito: Signal<CarritoItem[]>
+    + agregar(producto: Product, cantidad?: number): void
     + quitar(id: number): void
+    + removeAll(id: number): void
     + vaciar(): void
+    + descargarReciboXML(folio: string, paypalOrderId: string): void
+    + exportarXML(): void
+    - saveCartToStorage(userId: number): void
+    - loadCartFromStorage(userId: number): void
+    - escapeXml(value: string): string
   }
 
   class SearchService {
@@ -148,6 +198,8 @@ package "Servicios (src/app/services)" #ECF2FE {
     + usuario: WritableSignal<User | null>
     + loginUsuario(data: any): Observable
     + registrarUsuario(data: UserRegistrationData): Observable
+    + setUsuario(usuario: User, token: string): void
+    + clearUsuario(): void
     + getToken(): string | null
     + getUsuarioActual(): User | null
     + isAdmin(): boolean
@@ -174,7 +226,7 @@ package "Modelos (src/app/models)" #F1F5F9 {
     + imageUrl: string
     + description: string
     + category: string
-    + inStock: boolean
+    + inStock: number
   }
 
   class CartItem {
@@ -204,9 +256,19 @@ package "Modelos (src/app/models)" #F1F5F9 {
   class PedidoPayload {
     + folio: string
     + paypalOrderId: string
+    + paypalEstado: string
     + subtotal: number
+    + iva: number
     + total: number
     + items: PurchaseItem[]
+    + usuario_id?: number
+    + email_usuario?: string
+    + datos_fiscales?: object
+  }
+
+  class ProductAddEvent {
+    + product: Product
+    + quantity: number
   }
 
   class User {
@@ -216,6 +278,9 @@ package "Modelos (src/app/models)" #F1F5F9 {
     + apellido?: string
     + telefono?: string
     + rol?: 'user' | 'admin'
+    + rfc?: string
+    + regimenFiscal?: string
+    + usoCfdi?: string
   }
 
   class UserRegistrationData {
@@ -224,6 +289,9 @@ package "Modelos (src/app/models)" #F1F5F9 {
     + email: string
     + password: string
     + telefono?: string
+    + rfc?: string
+    + regimenFiscal?: string
+    + usoCfdi?: string
   }
 
   class Producto {
@@ -263,9 +331,9 @@ ProductCardComponent -[hidden]right-> CarritoComponent
 CarritoComponent -[hidden]right-> CheckoutComponent
 CheckoutComponent -[hidden]right-> HistorialComprasComponent
 HistorialComprasComponent -[hidden]right-> DetalleCompraComponent
-DetalleCompraComponent -[hidden]right-> ContactosComponent
-ContactosComponent -[hidden]right-> PrivacidadComponent
-PrivacidadComponent -[hidden]right-> PerfilComponent
+DetalleCompraComponent -[hidden]right-> PrivacidadComponent
+PrivacidadComponent -[hidden]right-> TerminosComponent
+TerminosComponent -[hidden]right-> PerfilComponent
 PerfilComponent -[hidden]right-> InventarioComponent
 InventarioComponent -[hidden]right-> ForgotPasswordComponent
 ForgotPasswordComponent -[hidden]right-> ResetPasswordComponent

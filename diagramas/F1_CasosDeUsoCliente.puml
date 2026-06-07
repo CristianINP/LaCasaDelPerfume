@@ -5,7 +5,7 @@ graph TB
 
     subgraph La_Casa_del_Perfume_Cliente [La Casa del Perfume — Cliente]
         subgraph ModNavegacion [Navegación General]
-            UC06([UC06 Filtrar por categoría]) ~~~ UC05([UC05 Ver catálogo]) ~~~ UC07([UC07 Buscar por nombre]) ~~~ UC04([UC04 Página inicio]) ~~~ UC08([UC08 Aviso privacidad]) ~~~ UC09([UC09 Contacto])
+            UC06([UC06 Filtrar por categoría]) ~~~ UC05([UC05 Ver catálogo]) ~~~ UC07([UC07 Buscar por nombre]) ~~~ UC04([UC04 Página inicio]) ~~~ UC08([UC08 Aviso privacidad]) ~~~ UC09([UC09 Ver términos])
         end
         subgraph ModHistorial [Historial de Compras]
             UC20([UC20 Ver detalle pedido]) ~~~ UC19([UC19 Consultar historial])
