@@ -1,5 +1,5 @@
 @startuml
-title Estructura del Recibo XML — La Casa del Perfume\n(Generado por CarritoService.descargarReciboXML())
+title Estructura del Recibo XML — La Casa del Perfume\n(CFDI 3.3 generado por CarritoService.descargarReciboXML())
 
 top to bottom direction
 
@@ -12,92 +12,82 @@ skinparam class {
 skinparam ArrowColor #3A6BC9
 skinparam backgroundColor #FAFAFA
 
-class "<recibo>" as ROOT {
-  (raíz del documento XML)
+class "<cfdi:Comprobante>" as ROOT {
+  (Raíz del documento — CFDI 3.3 SAT)
   --
-  <folio> : string
-    ej: ORD-1777507322236
-  <paypal_orden_id> : string
-    ID de transacción PayPal
-  <fecha> : dateTime (ISO 8601)
-    ej: 2026-05-11T14:30:00.000Z
-  ---
-  Generado por: CarritoService.descargarReciboXML()
-  Momento: después de captura exitosa de PayPal
-  Descarga automática como recibo-{folio}.xml
+  xmlns:cfdi = "http://www.sat.gob.mx/cfd/3"
+  Version     = "3.3"
+  Serie       = "A"
+  Folio       : string  [ej: ORD-1777507322236]
+  Fecha       : dateTime ISO 8601  [ej: 2026-05-11T14:30:00]
+  FormaPago   = "03"    [transferencia electrónica]
+  SubTotal    : decimal [2 decimales, sin IVA]
+  Moneda      = "MXN"
+  Total       : decimal [2 decimales, con IVA]
+  TipoDeComprobante = "I"  [Ingreso]
+  MetodoPago  = "PUE"
+  LugarExpedicion = "44100"
+  Exportacion = "01"
+  --
+  Generado por: CarritoService.descargarReciboXML(folio, paypalOrderId)
+  También generado y enviado como adjunto por: EmailPedidoService
+  Descarga automática como: CFDI-{folio}.xml
 }
 
-class "<productos>" as PRODS {
-  Contenedor de items
-  Puede tener 1 a N elementos <producto>
+class "<cfdi:Emisor>" as EMISOR {
+  Rfc           = "EKU9003173C9"
+  Nombre        = "LA CASA DEL PERFUME SA DE CV"
+  RegimenFiscal = "601"
 }
 
-class "<producto>" as PROD {
-  --
-  <id> : number
-  <nombre> : string  [XML-escaped]
-  <categoria> : string  [XML-escaped]
-  <cantidad> : integer ≥ 1
-  <precio_unitario> : decimal  [2 decimales]
-  <importe> : decimal  [cantidad × precio_unitario]
-  <descripcion> : string  [opcional, XML-escaped]
+class "<cfdi:Receptor>" as RECEPTOR {
+  Rfc                    : string  [User.rfc o "XAXX010101000"]
+  Nombre                 : string  [User.nombre + apellido o "PÚBLICO EN GENERAL"]
+  DomicilioFiscalReceptor = "44100"
+  RegimenFiscalReceptor  : string  [User.regimenFiscal o "616"]
+  UsoCFDI                : string  [User.usoCfdi o "G03"]
 }
 
-class "<totales>" as TOT {
-  (al nivel raíz, fuera de <productos>)
+class "<cfdi:Conceptos>" as CONCEPTOS {
+  Contenedor de 1 a N <cfdi:Concepto>
+}
+
+class "<cfdi:Concepto>" as CONCEPTO {
+  ClaveProdServ = "53101700"
+  Cantidad      : integer  [unidades del item]
+  ClaveUnidad   = "H87"   [Pieza]
+  Unidad        = "Pieza"
+  Descripcion   : string   [product.name, XML-escaped]
+  ValorUnitario : decimal  [6 decimales]
+  Importe       : decimal  [Cantidad × ValorUnitario]
   --
-  <subtotal> : decimal  [SUM de importes]
-  <iva> : decimal  [subtotal × 0.16]
-  <total> : decimal  [subtotal + iva]
+  <cfdi:Impuestos>
+    <cfdi:Traslados>
+      <cfdi:Traslado Impuesto="002" TipoFactor="Tasa"
+                     TasaOCuota="0.160000"
+                     Importe: decimal [IVA del concepto, 6 dec]/>
+}
+
+class "<cfdi:Impuestos>" as IMPUESTOS {
+  (A nivel raíz del Comprobante)
+  --
+  TotalImpuestosTrasladados : decimal [IVA total, 6 decimales]
+  --
+  <cfdi:Traslados>
+    <cfdi:Traslado
+      Base          : decimal [SubTotal, 2 dec]
+      Impuesto      = "002"   [IVA]
+      TipoFactor    = "Tasa"
+      TasaOCuota    = "0.160000"
+      Importe       : decimal [IVA total, 6 dec]/>
 }
 
 ' Jerarquía del documento
-ROOT "1" *-- "1" PRODS : <productos>
-ROOT "1" *-- "1" TOT : (plano, mismo nivel)
-PRODS "1" *-- "1..*" PROD : <producto> (1 o más)
+ROOT "1" *-- "1" EMISOR    : <cfdi:Emisor>
+ROOT "1" *-- "1" RECEPTOR  : <cfdi:Receptor>
+ROOT "1" *-- "1" CONCEPTOS : <cfdi:Conceptos>
+ROOT "1" *-- "1" IMPUESTOS : <cfdi:Impuestos>
+CONCEPTOS "1" *-- "1..*" CONCEPTO : <cfdi:Concepto> (1 o más)
 
-note right of ROOT
-  EJEMPLO DE INSTANCIA:
-
-  <?xml version="1.0" encoding="UTF-8"?>
-  <recibo>
-    <folio>ORD-1777507322236</folio>
-    <paypal_orden_id>5O123456789</paypal_orden_id>
-    <fecha>2026-05-11T14:30:00.000Z</fecha>
-    <productos>
-      <producto>
-        <id>1</id>
-        <nombre>Perfume Nocturnal Aura</nombre>
-        <categoria>Oriental</categoria>
-        <cantidad>2</cantidad>
-        <precio_unitario>85.00</precio_unitario>
-        <importe>170.00</importe>
-        <descripcion>Fragancia amaderada...</descripcion>
-      </producto>
-    </productos>
-    <subtotal>170.00</subtotal>
-    <iva>27.20</iva>
-    <total>197.20</total>
-  </recibo>
-end note
-
-note bottom of TOT
-  Cálculos automáticos:
-  • IVA siempre 16% (tasa fija)
-  • subtotal = SUM(precio × cantidad)
-  • total = subtotal + iva
-  • Moneda implícita: MXN (Pesos Mexicanos)
-  • Los valores de subtotal, iva, total
-    se toman de los Signals del CarritoService
-    en el momento del pago
-end note
-
-note bottom of PROD
-  Caracteres especiales en strings
-  son XML-escaped automáticamente:
-  & → &amp;   < → &lt;
-  > → &gt;    " → &quot;
-  ' → &apos;
-end note
 
 @enduml

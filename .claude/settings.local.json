@@ -1,42 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git pull *)",
-      "Bash(curl -s http://localhost:3000/api/productos)",
-      "Bash(python -c ' *)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://fimgs.net/images/secundar/o.44083.jpg\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://fimgs.net/images/secundar/o.37688.jpg\")",
-      "Bash(npx tsc *)",
-      "Bash(node -e ' *)",
+      "Bash(git rebase *)",
+      "Bash(git stash *)",
+      "Bash(git push *)",
       "Bash(git fetch *)",
-      "PowerShell(Get-ChildItem *)",
-      "Bash(git add *)",
-      "Bash(git commit -m ' *)",
-      "Bash(curl -s -X POST http://localhost:3000/api/paypal/guardar-pedido -H 'Content-Type: application/json' -d '{ *)",
-      "Bash(curl -s -X POST http://localhost:3000/api/tickets -H 'Content-Type: application/json' -d '{ *)",
-      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\alexc\\\\Documents\\\\La-casa-del-perfume\\\\src\\\\app\" -Recurse -File -Filter \"*.ts\")",
-      "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(Head -50)",
-      "Bash(curl -s http://localhost:3000/api/user/profile -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJjYXJsb3NAdGVzdC5jb20iLCJpYXQiOjE3NzkzMDIyODAsImV4cCI6MTc3OTMwNTg4MH0.G4Cx-71G-MAV2lRiLc3uUnECwyOYS8aUSpBVWxoBqLM')",
-      "Bash(curl -s http://localhost:3000/api/user/history -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJjYXJsb3NAdGVzdC5jb20iLCJpYXQiOjE3NzkzMDIyODAsImV4cCI6MTc3OTMwNTg4MH0.G4Cx-71G-MAV2lRiLc3uUnECwyOYS8aUSpBVWxoBqLM')",
-      "Bash(curl -s -X POST http://localhost:3000/api/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"carlos@test.com\",\"password\":\"MiPassword123\"}')",
-      "Bash(curl -s http://localhost:4200)",
-      "Bash(node src/server.js)",
-      "PowerShell(Start-Sleep -Seconds 15; \\(Invoke-WebRequest -Uri http://localhost:4200 -UseBasicParsing -TimeoutSec 5\\).StatusCode 2>&1)",
-      "mcp__playwright__browser_navigate",
-      "mcp__playwright__browser_take_screenshot",
-      "mcp__playwright__browser_evaluate",
-      "mcp__playwright__browser_click",
-      "mcp__playwright__browser_resize",
-      "mcp__playwright__browser_handle_dialog",
-      "Bash(Remove-Item *)",
-      "PowerShell(Remove-Item *)",
-      "Bash(ls \"C:\\\\Users\\\\crist\\\\ProAngular\\\\src\\\\app\\\\components\\\\\" 2>$null *)",
-      "Bash(npm run *)",
-      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\crist\\\\ProAngular\" -Force)",
-      "Bash(Select-Object Name, PSIsContainer)",
-      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\crist\\\\ProAngular\\\\src\\\\app\\\\components\\\\producto\" -File | Select-Object Name, @{Name='Size\\(bytes\\)';Expression={$_.Length}})",
-      "Bash(xargs wc -l)"
+      "Bash(git remote *)",
+      "Bash(git ls-remote *)",
+      "Bash(git merge *)"
     ]
   }
 }

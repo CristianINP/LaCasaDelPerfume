@@ -1,0 +1,81 @@
+@startuml
+title Flujo — Módulo Login / Registro con JWT\n(Nuevo después de rama Examen)
+
+start
+  :Usuario abre la aplicación;
+  :Router evalúa ruta solicitada;
+
+  if (¿Ruta es /login?) then (Sí — pública)
+    :Carga LoginComponent;
+    :initStarfield() → animación nebulosa;
+  else (No — protegida)
+    :authGuard: UserService.getUsuarioActual()?;
+    if (¿Hay sesión activa?) then (Sí)
+      :Permite acceso a la ruta solicitada;
+      stop
+    else (No)
+      :Redirige a /login;
+      :Carga LoginComponent;
+    endif
+  endif
+
+  :Vista muestra formulario;
+  :modoRegistro = false → modo LOGIN por defecto;
+
+  fork
+    :=== MODO LOGIN ===;
+    :Usuario ingresa email + password;
+    :submit() → validación básica;
+    if (¿email y password completos?) then (Sí)
+      :UserService.loginUsuario({email, password});
+      :POST /api/auth/login;
+      if (¿Backend responde OK?) then (200 OK)
+        :Recibe {mensaje, token, usuario{..., rfc, regimenFiscal, usoCfdi}};
+        :UserService.setUsuario(usuario, token);
+        :localStorage 'usuario_lcperfume' = usuario;
+        :localStorage 'token_lcperfume' = token;
+        :router.navigate según rol:\n  admin → /admin/inventario\n  user  → /;
+        :authGuard permite acceso;
+        stop
+      else (401/404 Error)
+        :esError() = true;
+        :mensaje = "Contraseña incorrecta" / "Usuario no encontrado";
+        :Vista muestra mensaje en rojo;
+      endif
+    else (No)
+      :mensaje = "Email y contraseña son obligatorios";
+    endif
+
+  fork again
+    :=== MODO REGISTRO ===;
+    :Usuario hace click en "Crear cuenta";
+    :alternarModo() → modoRegistro = true;
+    :limpiar() → limpia campos;
+    :Formulario muestra campos extra:\nnombre, apellido, telefono (opcional)\nrfc (obligatorio)\nrégimen fiscal (obligatorio)\nuso CFDI (obligatorio);
+    :Usuario llena todos los campos;
+    :submit():;
+    if (¿Todos los campos requeridos?) then (Sí)
+      :1. UserService.registrarUsuario(UserRegistrationData);
+      :   POST /api/auth/register;
+      :   Backend: bcrypt.hash(password, 10);
+      :   INSERT INTO usuarios (..., rfc, regimen_fiscal, uso_cfdi);
+      if (¿Registro OK?) then (201)
+        :2. UserService.loginUsuario({email, password});
+        :   POST /api/auth/login automático;
+        :Recibe {token, usuario{..., rfc, regimenFiscal, usoCfdi}};
+        :setUsuario(usuario, token) → localStorage;
+        :router.navigate según rol;
+        stop
+      else (400 — email ya existe)
+        :mensaje = "El usuario ya existe";
+      endif
+    else (No)
+      :mensaje = "Nombre/apellido/RFC/régimen/usoCFDI son obligatorios";
+    endif
+  end fork
+
+  :Usuario sigue en /login;
+  :Puede reintentar;
+
+stop
+@enduml

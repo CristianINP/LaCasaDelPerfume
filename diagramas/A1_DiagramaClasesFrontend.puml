@@ -1,0 +1,391 @@
+@startuml
+title Diagrama de Clases — La Casa del Perfume (Estructura por Capas)
+
+' Forzar que el flujo principal de paquetes sea de arriba hacia abajo
+top to bottom direction
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 11
+skinparam packageStyle rectangle
+skinparam backgroundColor #FAFAFA
+skinparam shadowing false
+
+' Paleta de colores limpia (Slate Blue / Minimal)
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #64748B
+  ArrowColor #3B82F6
+  FontColor #0F172A
+  HeaderBackgroundColor #E2E8F0
+}
+
+' ══════════════════════════════════════════════
+' CAPA SUPERIOR: COMPONENTES
+' ══════════════════════════════════════════════
+package "Componentes (src/app/components)" #F8FAFC {
+  class LoginComponent {
+    + modoRegistro: boolean
+    + email: string
+    + password: string
+    + nombre: string
+    + apellido: string
+    + telefono: string
+    + rfc: string
+    + regimenFiscal: string
+    + regimenFiscalOtro: boolean
+    + regimenFiscalCustom: string
+    + usoCfdi: string
+    + usoCfdiOtro: boolean
+    + usoCfdiCustom: string
+    + mensaje: Signal<string>
+    + cargando: Signal<boolean>
+    + mostrarPassword: Signal<boolean>
+    + alternarModo(): void
+    + onRegimenFiscalChange(): void
+    + onUsoCfdiChange(): void
+    + submit(): Promise<void>
+    + esError(): boolean
+    + limpiar(): void
+    + ngAfterViewInit(): void
+    - initStarfield(): void
+  }
+
+  class HomeComponent {
+    + showModal: WritableSignal
+  }
+
+  class NavbarComponent {
+    + searchQuery: WritableSignal
+    + onSearch(): void
+    + cerrarSesion(): void
+  }
+
+  class CatalogoComponent {
+    + products: WritableSignal
+    + filteredProducts: Signal
+    + onCategoryChange(cat: string): void
+  }
+
+  class ProductCardComponent {
+    + product: Product
+    + add: EventEmitter<ProductAddEvent>
+    + quantity: Signal<number>
+    + cartQuantity: Signal<number>
+    + availableToAdd: Signal<number>
+    + atStockLimit: Signal<boolean>
+    + stockWarning: Signal<boolean>
+    + incrementQuantity(): void
+    + decrementQuantity(): void
+    + onAdd(): void
+  }
+
+  class CarritoComponent {
+    + groupedItems: Signal
+    + totalConImpuestos: Signal
+    - loadPaypalSdk(): Promise<void>
+  }
+
+  class CheckoutComponent {
+    + total: Signal
+    - renderPaypalButton(): void
+  }
+
+  class HistorialComprasComponent {
+    + compras: ReadonlySignal
+  }
+
+  class DetalleCompraComponent {
+    + compra: PurchaseOrder
+  }
+  
+  class PrivacidadComponent {}
+  class TerminosComponent {}
+
+  class PerfilComponent {
+    + perfil: Signal<PerfilData | null>
+    + loading: Signal<boolean>
+    + guardando: Signal<boolean>
+    + error: Signal<string>
+    + exito: Signal<string>
+    + mostrarCambioPassword: boolean
+    + form: { nombre, apellido, email, telefono, rfc, regimenFiscal, usoCfdi, ... }
+    + passwordForm: { nueva, confirmar }
+    + ngOnInit(): Promise<void>
+    - populateForm(data: PerfilData): void
+    + onRegimenFiscalChange(): void
+    + onUsoCfdiChange(): void
+    + guardarPerfil(): Promise<void>
+  }
+
+  class InventarioComponent {
+    + productos: Signal<Producto[]>
+    + mostrarInactivos: Signal<boolean>
+    + productosFiltrados: Signal<Producto[]>
+    + abrirFormNuevo(): void
+    + editarProducto(p: Producto): void
+    + guardar(): Promise<void>
+    + desactivar(id: number): void
+    + activar(id: number): void
+  }
+
+  class ForgotPasswordComponent {
+    + email: string
+    + enviar(): Promise<void>
+  }
+
+  class ResetPasswordComponent {
+    + token: string
+    + password: string
+    + confirmPassword: string
+    + restablecer(): Promise<void>
+  }
+
+  class TerminosComponent {}
+}
+
+' ══════════════════════════════════════════════
+' CAPA INTERMEDIA: SERVICIOS
+' ══════════════════════════════════════════════
+package "Servicios (src/app/services)" #ECF2FE {
+  class CarritoService {
+    - productosSignal: WritableSignal<Product[]>
+    - currentUserId: number | null
+    + productos: ReadonlySignal<Product[]>
+    + groupedItems: Signal<CartItem[]>
+    + itemCount: Signal<number>
+    + subtotal: Signal<number>
+    + impuestos: Signal<number>
+    + totalConImpuestos: Signal<number>
+    + total: Signal<number>
+    + carrito: Signal<CarritoItem[]>
+    + agregar(producto: Product, cantidad?: number): void
+    + quitar(id: number): void
+    + removeAll(id: number): void
+    + vaciar(): void
+    + descargarReciboXML(folio: string, paypalOrderId: string): void
+    + exportarXML(): void
+    - saveCartToStorage(userId: number): void
+    - loadCartFromStorage(userId: number): void
+    - escapeXml(value: string): string
+  }
+
+  class SearchService {
+    - searchSignal: WritableSignal
+    + search: ReadonlySignal
+    + setSearch(query: string): void
+  }
+
+  class ProductsService {
+    - http: HttpClient
+    + getProducts(): Observable<Product[]>
+  }
+
+  class HistorialComprasService {
+    - http: HttpClient
+    + compras: ReadonlySignal<PurchaseOrder[]>
+    + obtenerCompras(): Promise<void>
+    + guardarCompra(orden: PedidoPayload): Promise
+  }
+
+  class PaypalService {
+    - http: HttpClient
+    + crearOrden(payload: any): Observable
+    + capturarOrden(orderId: string): Observable
+  }
+
+  class UserService {
+    - http: HttpClient
+    + usuario: WritableSignal<User | null>
+    + loginUsuario(data: any): Observable
+    + registrarUsuario(data: UserRegistrationData): Observable
+    + setUsuario(usuario: User, token: string): void
+    + clearUsuario(): void
+    + getToken(): string | null
+    + getUsuarioActual(): User | null
+    + isAdmin(): boolean
+  }
+
+  class InventarioService {
+    - http: HttpClient
+    + getInventario(): Observable<{data: Producto[]}>
+    + crearProducto(p: ProductoForm): Observable
+    + actualizarProducto(id: number, p: ProductoForm): Observable
+    + desactivarProducto(id: number): Observable
+    + activarProducto(id: number): Observable
+  }
+}
+
+' ══════════════════════════════════════════════
+' CAPA INFERIOR: MODELOS
+' ══════════════════════════════════════════════
+package "Modelos (src/app/models)" #F1F5F9 {
+  class Product {
+    + id: number
+    + name: string
+    + price: number
+    + imageUrl: string
+    + description: string
+    + category: string
+    + inStock: number
+  }
+
+  class CartItem {
+    + product: Product
+    + quantity: number
+  }
+
+  class PurchaseItem {
+    + producto_id: number
+    + nombre_producto: string
+    + cantidad: number
+    + precio_unitario: number
+    + importe: number
+  }
+
+  class PurchaseOrder {
+    + id: number
+    + folio: string
+    + fecha: string
+    + paypal_orden_id: string
+    + subtotal: number
+    + iva: number
+    + total: number
+    + items: PurchaseItem[]
+  }
+
+  class PedidoPayload {
+    + folio: string
+    + paypalOrderId: string
+    + paypalEstado: string
+    + subtotal: number
+    + iva: number
+    + total: number
+    + items: PurchaseItem[]
+    + usuario_id?: number
+    + email_usuario?: string
+    + datos_fiscales?: object
+  }
+
+  class ProductAddEvent {
+    + product: Product
+    + quantity: number
+  }
+
+  class User {
+    + id_usuario: number
+    + email: string
+    + nombre: string
+    + apellido?: string
+    + telefono?: string
+    + rol?: 'user' | 'admin'
+    + rfc?: string
+    + regimenFiscal?: string
+    + usoCfdi?: string
+  }
+
+  class UserRegistrationData {
+    + nombre: string
+    + apellido: string
+    + email: string
+    + password: string
+    + telefono?: string
+    + rfc?: string
+    + regimenFiscal?: string
+    + usoCfdi?: string
+  }
+
+  class Producto {
+    + id: number
+    + name: string
+    + price: number
+    + imageUrl: string | null
+    + category: string | null
+    + description: string | null
+    + inStock: number
+    + activo: number
+  }
+
+  class ProductoForm {
+    + name: string
+    + price: number
+    + imageUrl: string
+    + category: string
+    + description: string
+    + inStock: boolean
+  }
+}
+
+' ══════════════════════════════════════════════
+' ALINEACIÓN INVISIBLE PARA CONTROLAR CAPAS
+' ══════════════════════════════════════════════
+' Fuerza a los paquetes a apilarse estrictamente hacia abajo
+"Componentes (src/app/components)" -[hidden]down-> "Servicios (src/app/services)"
+"Servicios (src/app/services)" -[hidden]down-> "Modelos (src/app/models)"
+
+' Fuerza el orden horizontal de las clases dentro de los componentes
+LoginComponent -[hidden]right-> HomeComponent
+HomeComponent -[hidden]right-> NavbarComponent
+NavbarComponent -[hidden]right-> CatalogoComponent
+CatalogoComponent -[hidden]right-> ProductCardComponent
+ProductCardComponent -[hidden]right-> CarritoComponent
+CarritoComponent -[hidden]right-> CheckoutComponent
+CheckoutComponent -[hidden]right-> HistorialComprasComponent
+HistorialComprasComponent -[hidden]right-> DetalleCompraComponent
+DetalleCompraComponent -[hidden]right-> PrivacidadComponent
+PrivacidadComponent -[hidden]right-> TerminosComponent
+TerminosComponent -[hidden]right-> PerfilComponent
+PerfilComponent -[hidden]right-> InventarioComponent
+InventarioComponent -[hidden]right-> ForgotPasswordComponent
+ForgotPasswordComponent -[hidden]right-> ResetPasswordComponent
+ResetPasswordComponent -[hidden]right-> TerminosComponent
+
+' Fuerza el orden horizontal de los servicios
+CarritoService -[hidden]right-> SearchService
+SearchService -[hidden]right-> ProductsService
+ProductsService -[hidden]right-> HistorialComprasService
+HistorialComprasService -[hidden]right-> PaypalService
+PaypalService -[hidden]right-> UserService
+UserService -[hidden]right-> InventarioService
+
+' ══════════════════════════════════════════════
+' RELACIONES EN FORMATO VERTICAL (down)
+' ══════════════════════════════════════════════
+
+' Componentes -> Servicios
+LoginComponent -[#3B82F6]down-> UserService
+NavbarComponent -[#3B82F6]down-> SearchService
+NavbarComponent -[#3B82F6]down-> CarritoService
+NavbarComponent -[#3B82F6]down-> UserService
+CatalogoComponent -[#3B82F6]down-> ProductsService
+CatalogoComponent -[#3B82F6]down-> SearchService
+CatalogoComponent -[#3B82F6]down-> CarritoService
+CarritoComponent -[#3B82F6]down-> CarritoService
+CarritoComponent -[#3B82F6]down-> PaypalService
+CheckoutComponent -[#3B82F6]down-> CarritoService
+CheckoutComponent -[#3B82F6]down-> PaypalService
+CheckoutComponent -[#3B82F6]down-> HistorialComprasService
+HistorialComprasComponent -[#3B82F6]down-> HistorialComprasService
+DetalleCompraComponent -[#3B82F6]down-> HistorialComprasService
+PerfilComponent -[#3B82F6]down-> UserService
+InventarioComponent -[#3B82F6]down-> InventarioService
+ForgotPasswordComponent -[#3B82F6]down-> UserService
+ResetPasswordComponent -[#3B82F6]down-> UserService
+
+' UI Layout interno
+HomeComponent *-> CatalogoComponent
+CatalogoComponent *-> ProductCardComponent
+
+' Servicios -> Modelos
+ProductsService -[#64748B]down-> Product
+CarritoService -[#64748B]down-> CartItem
+CarritoService -[#64748B]down-> PedidoPayload
+HistorialComprasService -[#64748B]down-> PurchaseOrder
+InventarioService -[#64748B]down-> Producto
+InventarioService -[#64748B]down-> ProductoForm
+
+' Estructura interna de Modelos
+PurchaseOrder "1" *-> "many" PurchaseItem
+CartItem -> Product
+PedidoPayload -> PurchaseItem
+
+@enduml

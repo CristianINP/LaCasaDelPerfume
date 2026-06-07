@@ -1,0 +1,283 @@
+@startuml
+title Diagrama de Clases — Backend Node.js / Express\n(Controllers, Services, Middleware, Routes, Config)
+
+top to bottom direction
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam packageStyle rectangle
+skinparam backgroundColor #FAFAFA
+skinparam class {
+  BackgroundColor #FFF8E1
+  BorderColor #C9A84C
+  ArrowColor #C9A84C
+  FontColor #1A1A2E
+}
+
+' ══════════════════════════════════════════════
+' CONFIG
+' ══════════════════════════════════════════════
+package "Config (src/config)" {
+
+  class db {
+    <<mysql2 connection pool>>
+    --
+    host: process.env.DB_HOST
+    user: process.env.DB_USER
+    password: process.env.DB_PASSWORD
+    database: process.env.DB_NAME
+    --
+    + query(sql, params, cb): void
+    + promise().query(sql, params): Promise
+  }
+
+  class paypalConfig {
+    + clientId: string    [env: PAYPAL_CLIENT_ID]
+    + clientSecret: string [env: PAYPAL_CLIENT_SECRET]
+    + baseUrl: string     [sandbox / live]
+  }
+}
+
+' ══════════════════════════════════════════════
+' MIDDLEWARE
+' ══════════════════════════════════════════════
+package "Middleware (src/middleware)" {
+
+  class authMiddleware {
+    <<Express Middleware>>
+    --
+    + verifyToken(req, res, next): void
+    --
+    Extrae JWT de Authorization: Bearer <token>
+    jwt.verify(token, JWT_SECRET)
+    Si válido: req.user = {id, email, rol}
+    Si inválido/expirado: 403 Forbidden
+  }
+
+  class adminMiddleware {
+    <<Express Middleware>>
+    --
+    + verifyAdmin(req, res, next): void
+    --
+    Verifica req.user.rol === 'admin'
+    Si no: 403 Acceso denegado
+  }
+}
+
+' ══════════════════════════════════════════════
+' SERVICES
+' ══════════════════════════════════════════════
+package "Services (src/services)" {
+
+  class PaypalService {
+    <<async functions>>
+    --
+    - getBasicAuth(): string
+    + getAccessToken(): Promise<string>
+    + createPaypalOrder(orderData): Promise<{id, status}>
+    + capturePaypalOrder(orderId): Promise<captureData>
+    --
+    API: POST /v1/oauth2/token
+    API: POST /v2/checkout/orders
+    API: POST /v2/checkout/orders/{id}/capture
+  }
+
+  class EmailPedidoService {
+    <<async functions — nodemailer>>
+    --
+    + enviarConfirmacionPedido(params): Promise<void>
+    - generarCFDIXml(folio, items, subtotal, iva, total, datosUsuario): string
+    - escapeXml(value): string
+    - formatCurrency(amount): string
+    --
+    Genera CFDI 3.3 XML adjunto
+    Envía email HTML con detalles del pedido
+    SMTP: Gmail via process.env.EMAIL_USER / EMAIL_PASS
+  }
+}
+
+' ══════════════════════════════════════════════
+' CONTROLLERS
+' ══════════════════════════════════════════════
+package "Controllers (src/controllers)" {
+
+  class AuthController {
+    <<async functions>>
+    --
+    + register(req, res): Promise<void>
+    + login(req, res): Promise<void>
+    + forgotPassword(req, res): Promise<void>
+    + resetPassword(req, res): Promise<void>
+    --
+    register:       bcrypt.hash(password, 10) → INSERT INTO usuarios
+                    Acepta: nombre, apellido, email, password, telefono,
+                            rfc, regimenFiscal, usoCfdi
+    login:          bcrypt.compare → jwt.sign({id, email, rol}, '7d')
+                    Retorna: {token, usuario{id,nombre,email,rol,rfc,regimenFiscal,usoCfdi}}
+    forgotPassword: crypto.randomBytes(32) → INSERT password_resets
+                    nodemailer → envía email con enlace
+    resetPassword:  valida token → bcrypt.hash → UPDATE usuarios
+  }
+
+  class UserController {
+    <<async functions>>
+    --
+    + getProfile(req, res): Promise<void>
+    + updateProfile(req, res): Promise<void>
+    + getOrderHistory(req, res): Promise<void>
+    --
+    getProfile:      SELECT id_usuario, nombre, apellido, email, telefono,
+                            rfc, regimen_fiscal, uso_cfdi FROM usuarios
+    updateProfile:   UPDATE usuarios SET nombre, apellido, telefono, email,
+                            rfc, regimen_fiscal, uso_cfdi [, password]
+    getOrderHistory: SELECT FROM pedidos WHERE usuario_id = req.user.id
+  }
+
+  class InventarioController {
+    <<async functions>>
+    --
+    + getInventario(req, res): Promise<void>
+    + crearProducto(req, res): Promise<void>
+    + actualizarProducto(req, res): Promise<void>
+    + desactivarProducto(req, res): Promise<void>
+    + activarProducto(req, res): Promise<void>
+    --
+    getInventario:      SELECT * FROM productos
+    crearProducto:      INSERT INTO productos
+    actualizarProducto: UPDATE productos WHERE id = ?
+    desactivarProducto: UPDATE productos SET activo=0
+    activarProducto:    UPDATE productos SET activo=1
+  }
+
+  class ProductosController {
+    <<function>>
+    --
+    + getProductos(req, res): void
+    --
+    SELECT * FROM productos
+  }
+
+  class PedidosController {
+    <<async functions>>
+    --
+    + getHistorialUsuario(req, res): Promise<void>
+    + getPedidoById(req, res): Promise<void>
+    --
+    getHistorialUsuario: SELECT FROM pedidos WHERE usuario_id = req.user.id
+    getPedidoById:       SELECT FROM pedidos WHERE id = ? AND usuario_id = ?
+                         Parsea detalle_json → items[]
+  }
+
+  class PaypalController {
+    <<async functions>>
+    --
+    + createOrder(req, res): Promise<void>
+    + captureOrder(req, res): Promise<void>
+    + guardarPedido(req, res): Promise<void>
+    --
+    createOrder:   PaypalService.createPaypalOrder({items, total})
+    captureOrder:  PaypalService.capturePaypalOrder(orderId)
+    guardarPedido: fs.writeFile(historial/{folio}.json)
+                   INSERT INTO pedidos (usuario_id, folio, ..., detalle_json, archivo_historial)
+                   UPDATE productos SET inStock = GREATEST(0, inStock - qty) — descuento de stock
+                   EmailPedidoService.enviarConfirmacionPedido() — si email_usuario presente
+                   Acepta: folio, paypalOrderId, paypalEstado, subtotal, iva, total,
+                           items, usuario_id, email_usuario, datos_fiscales
+  }
+}
+
+' ══════════════════════════════════════════════
+' ROUTES
+' ══════════════════════════════════════════════
+package "Routes (src/routes)" {
+
+  class AuthRoutes {
+    POST /api/auth/register         → AuthController.register
+    POST /api/auth/login            → AuthController.login
+    POST /api/auth/forgot-password  → AuthController.forgotPassword
+    POST /api/auth/reset-password   → AuthController.resetPassword
+  }
+
+  class UserRoutes {
+    GET /api/user/profile  → [verifyToken] → UserController.getProfile
+    PUT /api/user/profile  → [verifyToken] → UserController.updateProfile
+    GET /api/user/history  → [verifyToken] → UserController.getOrderHistory
+  }
+
+  class InventarioRoutes {
+    GET    /api/inventario      → [verifyToken, verifyAdmin] → InventarioController.getInventario
+    POST   /api/inventario      → [verifyToken, verifyAdmin] → InventarioController.crearProducto
+    PUT    /api/inventario/:id  → [verifyToken, verifyAdmin] → InventarioController.actualizarProducto
+    PATCH  /api/inventario/:id/desactivar → [verifyToken, verifyAdmin] → InventarioController.desactivarProducto
+    PATCH  /api/inventario/:id/activar    → [verifyToken, verifyAdmin] → InventarioController.activarProducto
+  }
+
+  class ProductosRoutes {
+    GET /api/productos → [verifyToken] → ProductosController.getProductos
+  }
+
+  class PedidosRoutes {
+    GET /api/pedidos/historial → [verifyToken] → PedidosController.getHistorialUsuario
+    GET /api/pedidos/:id       → [verifyToken] → PedidosController.getPedidoById
+  }
+
+  class PaypalRoutes {
+    POST /api/paypal/create-order  → PaypalController.createOrder
+    POST /api/paypal/capture-order → PaypalController.captureOrder
+    POST /api/paypal/guardar-pedido → PaypalController.guardarPedido
+  }
+}
+
+' ══════════════════════════════════════════════
+' APP ENTRY
+' ══════════════════════════════════════════════
+package "App (src)" {
+
+  class ExpressApp {
+    <<app.js>>
+    --
+    app.use(cors())
+    app.use(express.json())
+    app.use('/api', ProductosRoutes)
+    app.use('/api', PedidosRoutes)
+    app.use('/api/paypal', PaypalRoutes)
+    app.use('/api/auth', AuthRoutes)
+    app.use('/api/user', UserRoutes)
+    app.use('/api/inventario', InventarioRoutes)
+  }
+}
+
+' ══════════════════════════════════════════════
+' RELACIONES
+' ══════════════════════════════════════════════
+ExpressApp --> AuthRoutes
+ExpressApp --> UserRoutes
+ExpressApp --> ProductosRoutes
+ExpressApp --> PedidosRoutes
+ExpressApp --> PaypalRoutes
+ExpressApp --> InventarioRoutes
+
+AuthRoutes --> AuthController
+UserRoutes --> authMiddleware : verifyToken
+UserRoutes --> UserController
+ProductosRoutes --> authMiddleware : verifyToken
+ProductosRoutes --> ProductosController
+PedidosRoutes --> authMiddleware : verifyToken
+PedidosRoutes --> PedidosController
+PaypalRoutes --> PaypalController
+InventarioRoutes --> authMiddleware : verifyToken
+InventarioRoutes --> adminMiddleware : verifyAdmin
+InventarioRoutes --> InventarioController
+
+AuthController --> db : consultas SQL
+UserController --> db : consultas SQL
+ProductosController --> db : consultas SQL
+PedidosController --> db : consultas SQL
+PaypalController --> db : INSERT pedidos + UPDATE stock
+PaypalController --> PaypalService : crea/captura orden
+PaypalController --> EmailPedidoService : envía confirmación (async)
+InventarioController --> db : CRUD productos
+
+PaypalService --> paypalConfig : clientId, clientSecret, baseUrl
+
+@enduml

@@ -45,23 +45,25 @@ start
   :POST /api/paypal/capture-order;
 
   if (¿Captura exitosa?) then (Sí)
-    :Genera folio único: ORD-{Date.now()};
+    :Genera folio único: FOL-{Date.now()};
+    :Guarda snapshot del carrito ANTES de vaciarlo;
+    :itemsSnapshot, subtotalSnapshot, ivaSnapshot, totalSnapshot;
 
-    :1. HistorialComprasService.guardarCompra(orden);
-    :   Calcula: subtotal, iva (16%), total;
-    :   POST /api/pedidos/guardar-compra;
-    :   Registra detalles por producto (snapshot);
+    :1. PaypalService.guardarPedido(payload);
+    :   POST /api/paypal/guardar-pedido;
+    :   Payload: folio, paypalOrderId, estado, subtotal, iva,;
+    :            total, usuario_id, items[];
 
-    :2. TicketService.generarTicket(TicketCreateData);
-    :   POST /api/tickets;
-    :   Retorna ticket generado;
+    :2. Construye ticketGenerado localmente:;
+    :   { id_ticket: folio, orderId, fecha_compra, total };
 
     :3. CarritoService.vaciar();
 
     :mostrarTicket signal = true;
-    :ticketGenerado signal = ticket;
-    :Muestra ticket en vista;
-    :Opciones: descargarTicketXML() / descargarTicketPDF();
+    :ticketGenerado signal = objeto local;
+    :Muestra resumen en vista;
+    :Opciones: descargarTicketXML() — XML simple <recibo>;
+    :          descargarTicketPDF() — PDF mínimo con folio;
 
   else (Error)
     :mensaje signal = error;

@@ -1,0 +1,22 @@
+graph TB
+    ADM[👑 Administrador] --> UCA01 & UCA02 & UCA03 & UCA04 & UCA05 & UCA06
+    UCA01 & UCA03 & UCA04 & UCA05 & UCA06 --> DB[(💾 Base de Datos)]
+
+    subgraph La_Casa_del_Perfume_Admin [La Casa del Perfume — Administrador]
+        subgraph ModAuthAdmin [Autenticación]
+            direction TB
+            UCA01([UC-A01 Iniciar sesión admin])
+            UCA02([UC-A02 Cerrar sesión])
+        end
+        subgraph ModProductos [Gestión de Inventario — /admin/inventario]
+            UCA04([UC-A04 Agregar producto]) ~~~ UCA05([UC-A05 Editar producto]) ~~~ UCA06([UC-A06 Activar/desactivar]) ~~~ UCA03([UC-A03 Ver listado productos])
+        end
+    end
+
+    %% Alineación de bloques
+    ModAuthAdmin ~~~ ModProductos
+
+    %% Relaciones Internas
+    UCA05 -.->|«extend»| UCA03
+    UCA06 -.->|«extend»| UCA03
+    UCA04 -.->|«include»| UCA03

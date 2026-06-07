@@ -21,22 +21,6 @@ start
   :Cuando window.paypal está disponible:;
   :renderPaypalButton() / scheduleRender();
 
-  note right
-    paypal.Buttons({
-      createOrder(data, actions) {
-        // PaypalService.crearOrden({items, total})
-        // POST /api/paypal/create-order
-      },
-      onApprove(data, actions) {
-        // PaypalService.capturarOrden(orderID)
-        // POST /api/paypal/capture-order
-      },
-      onError(err) {
-        // manejar error
-      }
-    }).render("#paypal-button-container");
-  end note
-
   :Renderiza botón PayPal en DOM;
   :cargandoPaypal signal = false;
 
@@ -62,15 +46,17 @@ start
     :PayPal retorna detalles completos de la transacción;
 
     :Backend (POST /api/paypal/guardar-pedido):;
-    :  1. Inserta en tabla pedidos;
-    :  2. Inserta en tabla detalles_pedido;
-    :  3. Estado = "COMPLETED";
+    :  1. Guarda snapshot en /historial/{folio}.json;
+    :  2. INSERT INTO pedidos (detalle_json = items[]);
+    :  3. UPDATE productos SET inStock = inStock - qty;
+    :  4. Envía email CFDI 3.3 al usuario (asíncrono);
 
     :Frontend (guardarPedidoEnBD / onApprove):;
     :  1. PaypalService.guardarPedido(PedidoPayload);
-    :  2. TicketService.generarTicket(TicketCreateData);
-    :  3. CarritoService.descargarReciboXML(folio, orderID);
-    :  4. CarritoService.vaciar();
+    :     Incluye: email_usuario, datos_fiscales (rfc/CFDI);
+    :  2. CarritoService.descargarReciboXML(folio, orderID);
+    :     Genera CFDI 3.3 local con datos fiscales del usuario;
+    :  3. CarritoService.vaciar();
 
     :Muestra confirmación al usuario;
 

@@ -1,0 +1,38 @@
+graph TB
+    CLI[👤 Cliente] --> UC01 & UC02 & UC03 & UC04 & UC05 & UC06 & UC07 & UC08 & UC09 & UC10 & UC11 & UC12 & UC14 & UC17 & UC19
+    PP[💳 PayPal] --> UC15 & UC16
+    UC18 & UC19 & UC01 & UC02 --> DB[(💾 Base de Datos)]
+
+    subgraph La_Casa_del_Perfume_Cliente [La Casa del Perfume — Cliente]
+        subgraph ModNavegacion [Navegación General]
+            UC06([UC06 Filtrar por categoría]) ~~~ UC05([UC05 Ver catálogo]) ~~~ UC07([UC07 Buscar por nombre]) ~~~ UC04([UC04 Página inicio]) ~~~ UC08([UC08 Aviso privacidad]) ~~~ UC09([UC09 Ver términos])
+        end
+        subgraph ModHistorial [Historial de Compras]
+            UC20([UC20 Ver detalle pedido]) ~~~ UC19([UC19 Consultar historial])
+        end
+        subgraph ModCarrito [Gestión del Carrito]
+            UC10([UC10 Agregar al carrito]) ~~~ UC12([UC12 Eliminar del carrito]) ~~~ UC11([UC11 Ver resumen carrito]) ~~~ UC13([UC13 Ver subtotal, IVA y total])
+        end
+        subgraph ModAuth [Autenticación]
+            direction TB
+            UC01([UC01 Iniciar sesión])
+            UC02([UC02 Registrar cuenta])
+            UC03([UC03 Cerrar sesión])
+        end
+        subgraph ModPago [Proceso de Pago]
+            UC17([UC17 Descargar XML]) ~~~ UC18([UC18 Registrar en BD]) ~~~ UC14([UC14 Iniciar pago PayPal]) ~~~ UC15([UC15 Autorizar en PayPal]) ~~~ UC16([UC16 Capturar orden pago])
+        end
+    end
+
+    %% Alineación de bloques
+    ModNavegacion ~~~ ModHistorial ~~~ ModCarrito ~~~ ModAuth ~~~ ModPago
+
+    %% Relaciones Internas
+    UC06 -.->|«extend»| UC05
+    UC07 -.->|«extend»| UC05
+    UC20 -.->|«extend»| UC19
+    UC11 -.->|«include»| UC13
+    UC14 -.->|«include»| UC15
+    UC15 -.->|«include»| UC16
+    UC16 -.->|«extend»| UC17
+    UC16 -.->|«include»| UC18

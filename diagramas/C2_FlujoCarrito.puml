@@ -21,16 +21,8 @@ start
   endif
 
   :loadPaypalSdk() → crea <script> dinámicamente;
-  note right
-    src = "https://www.paypal.com/sdk/js?client-id=..."
-    Inyecta en <head> si no existe
-  end note
 
   :startCartWatcher() → setInterval(200ms);
-  note right
-    Monitorea cambios en el carrito
-    para re-renderizar botón PayPal
-  end note
 
   if (¿window.paypal disponible?) then (Sí)
     :scheduleRender() → renderPaypalButton();
@@ -60,15 +52,19 @@ start
 
     :1. PaypalService.guardarPedido(PedidoPayload);
     :   POST /api/paypal/guardar-pedido;
-    :   Backend inserta en pedidos + detalles_pedido;
+    :   Payload incluye: folio, paypalOrderId, paypalEstado,;
+    :   subtotal, iva, total, items, usuario_id,;
+    :   email_usuario, datos_fiscales (rfc, regimenFiscal, usoCfdi);
+    :   Backend: guarda JSON en /historial/{folio}.json;
+    :            INSERT INTO pedidos;
+    :            UPDATE productos SET inStock = inStock - qty;
+    :            Envía email CFDI al usuario (asíncrono);
 
-    :2. TicketService.generarTicket(TicketCreateData);
-    :   POST /api/tickets;
+    :2. CarritoService.descargarReciboXML(folio, paypalOrderId);
+    :   Genera CFDI 3.3 con datos fiscales del usuario;
+    :   Descarga automática como CFDI-{folio}.xml;
 
-    :3. CarritoService.descargarReciboXML(folio, paypalOrderId);
-    :   Genera y descarga archivo .xml automáticamente;
-
-    :4. CarritoService.vaciar();
+    :3. CarritoService.vaciar();
     :   productosSignal = [];
     :   itemCount = 0;
 
@@ -81,6 +77,8 @@ start
     :mensaje signal = "Error al procesar el pago";
     :Usuario puede reintentar;
   endif
+
+  :onCancel callback → mensaje = "Pago cancelado";
 
 stop
 @enduml
